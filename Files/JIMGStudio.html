@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JackImage Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  font-family:Segoe UI,Arial;
+  background:#0f172a;
+  color:#e2e8f0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.container{
+  width:600px;
+  background:#1e293b;
+  padding:30px;
+  border-radius:14px;
+  box-shadow:0 15px 50px rgba(0,0,0,0.5);
+  text-align:center;
+}
+h1{margin-top:0;}
+.drop{
+  border:2px dashed #475569;
+  padding:30px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.2s;
+}
+.drop:hover{
+  border-color:#38bdf8;
+}
+.preview img{
+  max-width:100%;
+  margin-top:15px;
+  border-radius:8px;
+}
+.controls{
+  margin-top:20px;
+}
+button{
+  padding:10px 18px;
+  margin:6px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  background:#38bdf8;
+  color:#0f172a;
+}
+button:hover{background:#0ea5e9;}
+button:disabled{
+  background:#334155;
+  cursor:not-allowed;
+}
+input[type=range]{
+  width:200px;
+}
+.info{
+  margin-top:10px;
+  color:#94a3b8;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>JackImage Studio</h1>
+
+  <div class="drop" id="drop">
+    Drag & Drop PNG, JPEG, or JackImage<br>or Click to Select
+  </div>
+  <input type="file" id="fileInput" hidden>
+
+  <div class="preview" id="preview"></div>
+  <div class="info" id="info"></div>
+
+  <div class="controls">
+    <button id="toJack" disabled>Convert to JackImage</button>
+    <button id="toPNG" disabled>Convert to PNG</button>
+    <button id="toJPG" disabled>Convert to JPEG</button>
+    <br><br>
+    JPEG Quality:
+    <input type="range" id="quality" min="0.1" max="1" step="0.1" value="0.9">
+  </div>
+</div>
+
+<script>
+const drop = document.getElementById("drop");
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+const info = document.getElementById("info");
+const toJack = document.getElementById("toJack");
+const toPNG = document.getElementById("toPNG");
+const toJPG = document.getElementById("toJPG");
+const quality = document.getElementById("quality");
+
+let currentImage = null;
+let currentType = null;
+
+drop.onclick = ()=>fileInput.click();
+drop.ondragover = e=>{e.preventDefault();};
+drop.ondrop = e=>{
+  e.preventDefault();
+  handleFile(e.dataTransfer.files[0]);
+};
+fileInput.onchange = ()=>handleFile(fileInput.files[0]);
+
+function handleFile(file){
+  if(!file) return;
+
+  preview.innerHTML="";
+  info.innerHTML="";
+  toJack.disabled = true;
+  toPNG.disabled = true;
+  toJPG.disabled = true;
+
+  if(file.name.endsWith(".JackImage")){
+    loadJackImage(file);
+    currentType = "jack";
+  }
+  else if(file.type === "image/png" || file.type === "image/jpeg"){
+    loadStandardImage(file);
+    currentType = "standard";
+  }
+}
+
+function loadStandardImage(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image();
+    img.onload = ()=>{
+      currentImage = img;
+      preview.appendChild(img);
+      info.innerHTML = `Resolution: ${img.width} × ${img.height}`;
+      toJack.disabled = false;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadJackImage(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const bytes = new Uint8Array(e.target.result);
+    const header = String.fromCharCode(...bytes.slice(0,4));
+    if(header !== "JIMG"){ alert("Invalid JackImage"); return; }
+
+    const view = new DataView(bytes.buffer);
+    const width = view.getUint32(4,true);
+    const height = view.getUint32(8,true);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    const imgData = ctx.createImageData(width,height);
+
+    let pi=13, di=0;
+    while(pi < bytes.length){
+      imgData.data[di++] = bytes[pi++];
+      imgData.data[di++] = bytes[pi++];
+      imgData.data[di++] = bytes[pi++];
+      imgData.data[di++] = 255;
+    }
+    ctx.putImageData(imgData,0,0);
+
+    const img = new Image();
+    img.src = canvas.toDataURL("image/png");
+    currentImage = img;
+
+    preview.appendChild(img);
+    info.innerHTML = `Resolution: ${width} × ${height}`;
+    toPNG.disabled = false;
+    toJPG.disabled = false;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function imageToCanvas(){
+  const canvas = document.createElement("canvas");
+  canvas.width = currentImage.width;
+  canvas.height = currentImage.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(currentImage,0,0);
+  return canvas;
+}
+
+toJack.onclick = ()=>{
+  const canvas = imageToCanvas();
+  const ctx = canvas.getContext("2d");
+  const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+
+  const header = new Uint8Array(13);
+  header.set([74,73,77,71]);
+  const view = new DataView(header.buffer);
+  view.setUint32(4,canvas.width,true);
+  view.setUint32(8,canvas.height,true);
+  view.setUint8(12,24);
+
+  const rgb = new Uint8Array(canvas.width*canvas.height*3);
+  let j=0;
+  for(let i=0;i<data.length;i+=4){
+    rgb[j++] = data[i];
+    rgb[j++] = data[i+1];
+    rgb[j++] = data[i+2];
+  }
+
+  const finalFile = new Uint8Array(header.length + rgb.length);
+  finalFile.set(header,0);
+  finalFile.set(rgb,header.length);
+
+  download(finalFile,"converted.JackImage");
+};
+
+toPNG.onclick = ()=>{
+  const canvas = imageToCanvas();
+  downloadDataURL(canvas.toDataURL("image/png"),"converted.png");
+};
+
+toJPG.onclick = ()=>{
+  const canvas = imageToCanvas();
+  const q = parseFloat(quality.value);
+  downloadDataURL(canvas.toDataURL("image/jpeg",q),"converted.jpg");
+};
+
+function download(bytes,name){
+  const blob = new Blob([bytes],{type:"application/octet-stream"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  link.click();
+}
+
+function downloadDataURL(dataURL,name){
+  const link = document.createElement("a");
+  link.href = dataURL;
+  link.download = name;
+  link.click();
+}
+</script>
+
+</body>
+</html>
