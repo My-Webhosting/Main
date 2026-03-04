@@ -3,11 +3,8 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  optimizeDeps: {
-    exclude: [
-      "@ffmpeg/ffmpeg",
-      "@sqlite.org/sqlite-wasm",
-    ]
+  base: '/Main/Files/ProConvert/',
+})
   },
   base: "/convert/",
   plugins: [
