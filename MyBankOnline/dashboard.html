@@ -1,24 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Dashboard</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
+<h1>Account Dashboard</h1>
 
-<body>
+<p id="balance"></p>
 
-<h2>Dashboard</h2>
+<h3>Transfer Money</h3>
 
-<p id="balance">Balance: </p>
-
-<h3>Transfer</h3>
-
-<input id="toUser" placeholder="Send To User">
+<input id="toUser" placeholder="Send To">
 <input id="amount" placeholder="Amount">
 
 <button onclick="transfer()">Send</button>
 
-<script src="js/app.js"></script>
+<h3>Transaction History</h3>
 
-</body>
-</html>
+<div id="transactions"></div>
+
+<script src="js/app.js"></script>
