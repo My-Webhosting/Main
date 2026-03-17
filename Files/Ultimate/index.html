@@ -10,138 +10,173 @@
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     
     <style>
-        :root { --bg: #ffffff; --card: #f9f9fb; --txt: #111; --accent: #2563eb; --border: #e2e8f0; --muted: #64748b; }
-        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --txt: #f8fafc; --accent: #3b82f6; --border: #334155; --muted: #94a3b8; }
+        /* FIXED LIGHT/DARK VARIABLES */
+        :root { 
+            --bg: #ffffff; 
+            --card: #f8fafc; 
+            --txt: #0f172a; 
+            --accent: #2563eb; 
+            --border: #e2e8f0; 
+            --muted: #64748b; 
+        }
+        [data-theme="dark"] { 
+            --bg: #0f172a; 
+            --card: #1e293b; 
+            --txt: #f8fafc; 
+            --accent: #3b82f6; 
+            --border: #334155; 
+            --muted: #94a3b8; 
+        }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--txt); transition: 0.3s; line-height: 1.6; }
+        body { background: var(--bg); color: var(--txt); transition: background 0.3s, color 0.3s; line-height: 1.6; min-height: 100vh; }
 
-        /* --- MyWeb Nav Style --- */
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 8%; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
-        .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.2rem; cursor: pointer; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 8%; background: var(--bg); border-bottom: 1px solid var(--border); }
+        .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.2rem; }
         .nav-brand img { height: 34px; }
 
-        /* --- Converter UI --- */
-        .wrapper { max-width: 800px; margin: 60px auto; padding: 0 20px; }
-        .hero { text-align: center; margin-bottom: 40px; }
-        .hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
-        .hero p { color: var(--muted); font-size: 1.1rem; }
+        .wrapper { max-width: 700px; margin: 60px auto; padding: 0 20px; }
+        .hero { text-align: center; margin-bottom: 30px; }
+        .hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; color: var(--txt); }
 
-        .main-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        .main-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
-        /* Upload Zone */
-        .upload-area { border: 2px dashed var(--border); border-radius: 16px; padding: 60px 20px; text-align: center; cursor: pointer; transition: 0.2s; background: var(--bg); }
-        .upload-area:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.04); }
-        .upload-area i { font-size: 2rem; display: block; margin-bottom: 15px; }
-
-        /* Controls */
-        .control-group { margin-top: 30px; display: none; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* THE CLICKABLE ZONE */
+        .upload-box { 
+            border: 2px dashed var(--border); 
+            border-radius: 12px; 
+            padding: 50px 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            background: var(--bg);
+            transition: 0.2s;
+            position: relative;
+        }
+        .upload-box:hover { border-color: var(--accent); }
         
-        label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.5px; }
-        select { width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--txt); font-weight: 600; outline: none; margin-bottom: 20px; appearance: none; }
+        .control-group { margin-top: 25px; display: none; }
+        label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+        
+        select { 
+            width: 100%; 
+            padding: 14px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border); 
+            background: var(--bg); 
+            color: var(--txt); 
+            font-weight: 600; 
+            margin-bottom: 20px;
+        }
 
-        .btn { width: 100%; padding: 18px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; }
         .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
         
-        .console { background: #000; color: #10b981; padding: 25px; border-radius: 12px; font-family: monospace; font-size: 0.85rem; margin-top: 25px; min-height: 150px; display: none; overflow-y: auto; }
+        .console { 
+            background: #000; 
+            color: #10b981; 
+            padding: 20px; 
+            border-radius: 10px; 
+            font-family: monospace; 
+            font-size: 0.8rem; 
+            margin-top: 20px; 
+            display: none; 
+            max-height: 200px;
+            overflow-y: auto;
+        }
 
-        .version-tag { position: fixed; bottom: 20px; right: 20px; font-size: 0.7rem; font-weight: 700; color: var(--muted); }
+        .version-tag { position: fixed; bottom: 15px; right: 15px; font-size: 0.65rem; font-weight: 800; color: var(--muted); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-brand" onclick="location.reload()">
+    <div class="nav-brand">
         <img src="MYWEB2!.png" alt="Logo">
         <span>MyWebHosting</span>
     </div>
-    <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🌓</button>
+    <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.4rem;">🌓</button>
 </nav>
 
 <div class="wrapper">
     <div class="hero">
         <h1>Ultimate Converter</h1>
-        <p>Professional-grade file transformation engine.</p>
     </div>
 
     <div class="main-card">
-        <div id="drop-zone" class="upload-area">
-            <p id="status-text" style="font-weight: 700;">Click to select or drop a file</p>
-            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 5px;">All formats supported</p>
-            <input type="file" id="fileInput" hidden>
+        <div id="drop-zone" class="upload-box">
+            <p id="status-text" style="font-weight: 700;">Click to Open File Browser</p>
+            <input type="file" id="fileInput" style="display: none;">
         </div>
 
         <div id="settings" class="control-group">
-            <label>Target Format</label>
+            <label>Output Format</label>
             <select id="format-select"></select>
             <button id="convert-btn" class="btn btn-primary">Start Conversion</button>
         </div>
 
         <div id="log-box" class="console"></div>
-        <button id="reset-btn" class="btn" style="display:none; margin-top:15px; background:var(--border); color:var(--txt);">Convert Another</button>
     </div>
 </div>
 
-<div class="version-tag">BUILD v1.5.0 | MYWEB CLOUD</div>
+<div class="version-tag">STABLE v1.5.1 | MYWEB</div>
 
 <script type="module">
+    // Direct Import to ensure Magick is ready
     import { initializeImageMagick, ImageMagick, MagickFormat } from 'https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.30/dist/index.mjs';
 
-    // Massive Format Dictionary
     const formats = {
-        image: ["png", "jpg", "jpeg", "webp", "gif", "ico", "bmp", "tiff", "avif", "pdf", "heic", "svg"],
-        video: ["mp4", "webm", "avi", "mov", "mkv", "mp3", "gif"],
-        audio: ["mp3", "wav", "ogg", "flac", "m4a"],
+        image: ["png", "jpg", "webp", "gif", "ico", "bmp", "pdf"],
+        video: ["mp4", "webm", "avi", "mov", "mp3", "gif"],
+        audio: ["mp3", "wav", "ogg", "flac"],
         docs: ["docx", "odt", "html", "txt", "pdf"]
     };
 
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ffmpeg = createFFmpeg({ log: true, corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js' });
 
-    let activeFile = null;
-    let category = '';
-
     const dz = document.getElementById('drop-zone');
     const fi = document.getElementById('fileInput');
-    const log = document.getElementById('log-box');
+    const themeBtn = document.getElementById('theme-toggle');
 
-    // Trigger File Input
-    dz.onclick = () => fi.click();
+    let activeFile = null;
+    let type = '';
 
-    // Handle File Selection
-    fi.onchange = (e) => {
+    // FIX: Theme Toggle Logic
+    themeBtn.onclick = () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+    };
+
+    // FIX: Click Trigger
+    dz.addEventListener('click', () => fi.click());
+
+    fi.addEventListener('change', (e) => {
         activeFile = e.target.files[0];
         if(!activeFile) return;
 
         const mime = activeFile.type;
-        const ext = activeFile.name.split('.').pop().toLowerCase();
-        
-        if(mime.startsWith('image')) category = 'image';
-        else if(mime.startsWith('video')) category = 'video';
-        else if(mime.startsWith('audio')) category = 'audio';
-        else category = 'docs';
+        if(mime.startsWith('image')) type = 'image';
+        else if(mime.startsWith('video')) type = 'video';
+        else if(mime.startsWith('audio')) type = 'audio';
+        else type = 'docs';
 
-        document.getElementById('status-text').innerText = activeFile.name.toUpperCase();
+        document.getElementById('status-text').innerText = "SELECTED: " + activeFile.name;
         document.getElementById('settings').style.display = 'block';
 
-        const list = formats[category] || formats.image;
+        const list = formats[type] || formats.image;
         document.getElementById('format-select').innerHTML = list
-            .filter(f => f !== ext)
             .map(f => `<option value="${f}">${f.toUpperCase()}</option>`).join('');
-    };
+    });
 
-    // Execution
     document.getElementById('convert-btn').onclick = async () => {
         const target = document.getElementById('format-select').value;
+        const log = document.getElementById('log-box');
         log.style.display = 'block';
-        log.innerHTML = `> INITIALIZING ENGINE...`;
-        document.getElementById('convert-btn').disabled = true;
+        log.innerHTML = `> INITIALIZING...`;
 
         try {
-            if(category === 'image') {
-                log.innerHTML += `<br>> BOOTING MAGICK_CORE...`;
+            if(type === 'image') {
+                log.innerHTML += `<br>> LOADING MAGICK...`;
                 await initializeImageMagick();
                 const bytes = new Uint8Array(await activeFile.arrayBuffer());
                 const fKey = target.charAt(0).toUpperCase() + target.slice(1).replace('jpg', 'Jpeg');
@@ -149,41 +184,29 @@
                 ImageMagick.read(bytes, (img) => {
                     img.write(data => {
                         const blob = new Blob([data], { type: `image/${target}` });
-                        download(blob, `myweb_conv.${target}`);
-                        log.innerHTML += `<br>> SUCCESS: IMAGE RENDERED.`;
-                        done();
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `converted.${target}`;
+                        a.click();
+                        log.innerHTML += `<br>> DONE!`;
                     }, MagickFormat[fKey] || MagickFormat.Png);
                 });
             } else {
-                log.innerHTML += `<br>> BOOTING FFMPEG_CORE...`;
+                log.innerHTML += `<br>> LOADING FFMPEG...`;
                 if(!ffmpeg.isLoaded()) await ffmpeg.load();
                 ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
                 await ffmpeg.run('-i', 'in', `out.${target}`);
                 const data = ffmpeg.FS('readFile', `out.${target}`);
-                download(new Blob([data.buffer]), `myweb_conv.${target}`);
-                log.innerHTML += `<br>> SUCCESS: EXPORT READY.`;
-                done();
+                const blob = new Blob([data.buffer]);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `converted.${target}`;
+                a.click();
+                log.innerHTML += `<br>> DONE!`;
             }
         } catch (err) {
             log.innerHTML += `<br>> ERROR: ${err.message}`;
-            document.getElementById('convert-btn').disabled = false;
         }
-    };
-
-    function download(blob, name) {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = name;
-        a.click();
-    }
-
-    function done() {
-        document.getElementById('reset-btn').style.display = 'block';
-    }
-
-    document.getElementById('theme-toggle').onclick = () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
     };
 </script>
 </body>
