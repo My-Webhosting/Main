@@ -33,12 +33,26 @@
         .step.active .step-num { background: var(--accent); color: white; }
         .step-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* --- Content Card --- */
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 45px; box-shadow: 0 40px 100px rgba(0,0,0,0.3); }
         .panel { display: none; }
         .panel.active { display: block; animation: fadeInUp 0.4s ease forwards; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .dropzone { border: 2px dashed var(--border); padding: 80px 20px; border-radius: 20px; text-align: center; cursor: pointer; }
+        /* CLICKABLE DROPZONE */
+        .dropzone { 
+            border: 2px dashed var(--border); 
+            padding: 80px 20px; 
+            border-radius: 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .dropzone:hover { 
+            border-color: var(--accent); 
+            background: rgba(59, 130, 246, 0.05); 
+        }
+        
         .pro-label { font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; display: block; }
         .pro-select { width: 100%; padding: 16px; background: var(--bg); color: var(--txt); border: 1px solid var(--border); border-radius: 12px; font-weight: 600; margin-bottom: 25px; outline: none; }
 
@@ -64,7 +78,7 @@
     </div>
     <div class="nav-right">
         <a href="../index.html" class="nav-link">Home</a>
-        <a href="https://jackimagestudio.github.io" class="nav-link">JackImage Studio</a>
+        <a href="https://jackimagestudio.github.io" class="nav-link" target="_blank">JackImage Studio</a>
         <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.3rem;">🌓</button>
     </div>
 </nav>
@@ -80,8 +94,8 @@
 
     <div class="card">
         <div class="panel active" id="p1">
-            <div class="dropzone" id="dz">
-                <p style="font-weight: 800; font-size: 1.1rem;">Drop Asset Here</p>
+            <div class="dropzone" id="dz" onclick="document.getElementById('fileIn').click()">
+                <p style="font-weight: 800; font-size: 1.1rem;">Click or Drop Asset</p>
                 <p id="file-status" style="color: var(--accent); font-weight: 800; margin-top: 5px; font-size: 0.75rem;">AWAITING BINARY</p>
                 <input type="file" id="fileIn" hidden>
             </div>
@@ -129,7 +143,6 @@
 
     let activeFile = null;
 
-    // --- System Alert ---
     function showAlert(msg) {
         const toast = document.getElementById('alert-toast');
         toast.innerText = msg;
@@ -137,14 +150,12 @@
         setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // --- Navigation (Global Fix) ---
     window.moveStep = function(n) {
         document.querySelectorAll('.panel, .step').forEach(el => el.classList.remove('active'));
         document.getElementById('p'+n).classList.add('active');
         document.getElementById('s'+n).classList.add('active');
     };
 
-    // --- Logic ---
     const catSel = document.getElementById('cat-sel');
     const formatSel = document.getElementById('format-sel');
 
@@ -154,7 +165,7 @@
     catSel.onchange = updateFormats;
     updateFormats();
 
-    document.getElementById('dz').onclick = () => document.getElementById('fileIn').click();
+    // FILE PICKER LOGIC
     document.getElementById('fileIn').onchange = (e) => {
         activeFile = e.target.files[0];
         if(activeFile) {
@@ -165,9 +176,26 @@
             updateFormats();
         }
     };
+
+    // DRAG AND DROP LOGIC
+    const dz = document.getElementById('dz');
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor = 'var(--border)'; });
+    dz.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dz.style.borderColor = 'var(--border)';
+        activeFile = e.dataTransfer.files[0];
+        if(activeFile) {
+            document.getElementById('file-status').innerText = activeFile.name.toUpperCase();
+            document.getElementById('to-2').disabled = false;
+            showAlert("BINARY DROPPED");
+            catSel.value = (activeFile.type.includes('image') || activeFile.type.includes('video') || activeFile.type.includes('audio')) ? 'media' : 'docs';
+            updateFormats();
+        }
+    });
+
     document.getElementById('to-2').onclick = () => moveStep(2);
 
-    // --- Execution ---
     document.getElementById('execBtn').onclick = async function() {
         const con = document.getElementById('console');
         const preview = document.getElementById('preview-box');
@@ -203,7 +231,6 @@
         }
     };
 
-    // --- Theme ---
     document.getElementById('theme-toggle').onclick = () => {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
