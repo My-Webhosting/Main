@@ -14,20 +14,17 @@
         [data-theme="dark"] { --bg: #0a0a0a; --txt: #fff; --accent: #3b82f6; --card: #16161a; --border: #27272a; --muted: #a1a1aa; }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--txt); transition: 0.3s; line-height: 1.6; min-height: 100vh; position: relative; }
+        body { background: var(--bg); color: var(--txt); transition: 0.3s; line-height: 1.6; min-height: 100vh; }
 
-        /* --- Navigation --- */
         nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 5%; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
         .nav-left { display: flex; align-items: center; gap: 12px; }
         .nav-left img { height: 32px; cursor: pointer; }
-        .nav-left span { font-weight: 800; font-size: 1.1rem; }
         .nav-right { display: flex; align-items: center; gap: 25px; }
         .nav-link { text-decoration: none; color: var(--muted); font-size: 0.85rem; font-weight: 600; }
 
-        /* --- Workspace --- */
         .workspace { max-width: 800px; margin: 40px auto; padding: 0 20px 80px; }
         .stepper { display: flex; justify-content: space-between; margin-bottom: 40px; }
-        .step { flex: 1; text-align: center; opacity: 0.3; }
+        .step { flex: 1; text-align: center; opacity: 0.3; transition: 0.3s; }
         .step.active { opacity: 1; }
         .step-num { width: 30px; height: 30px; background: var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 800; font-size: 0.7rem; }
         .step.active .step-num { background: var(--accent); color: white; }
@@ -51,9 +48,7 @@
         .btn-primary { background: var(--txt); color: var(--bg); flex: 2; }
         .btn-secondary { background: var(--border); color: var(--muted); flex: 1; }
 
-        /* VERSION TAG */
-        .version-tag { position: fixed; bottom: 15px; right: 20px; font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; pointer-events: none; opacity: 0.5; }
-
+        .version-tag { position: fixed; bottom: 15px; right: 20px; font-size: 0.65rem; font-weight: 800; color: var(--muted); opacity: 0.5; }
         #alert-toast { position: fixed; bottom: 20px; left: 20px; background: var(--accent); color: white; padding: 14px 24px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; display: none; z-index: 2000; }
         #preview-box { background: white; color: black; padding: 25px; border-radius: 12px; margin-top: 25px; display: none; border: 1px solid #ddd; }
     </style>
@@ -72,7 +67,7 @@
     </div>
 </nav>
 
-<div id="alert-toast">SYSTEM_MSG</div>
+<div id="alert-toast">SYSTEM_UPDATE</div>
 
 <div class="workspace">
     <div class="stepper">
@@ -94,12 +89,12 @@
         </div>
 
         <div class="panel" id="p2">
-            <span class="pro-label">Converter Core</span>
-            <select id="cat-sel" class="pro-select">
-                <option value="docs">Envelope (Document Parser)</option>
-                <option value="media">WASM (Media Re-encode)</option>
+            <span class="pro-label">Core Logic (Auto-Detected)</span>
+            <select id="cat-sel" class="pro-select" disabled>
+                <option value="docs">Envelope (Docs)</option>
+                <option value="media">WASM (Media)</option>
             </select>
-            <span class="pro-label">Format Selection</span>
+            <span class="pro-label">Target Format</span>
             <select id="format-sel" class="pro-select"></select>
             <div class="nav-btns">
                 <button class="btn btn-secondary" onclick="moveStep(1)">Back</button>
@@ -118,21 +113,32 @@
     </div>
 </div>
 
-<div class="version-tag">Build v1.0.4 | Ultimate Converter</div>
+<div class="version-tag">Build v1.1.0 | Ultimate Converter</div>
 
 <script type="module">
     import parseDOCX from "./envelope/parseDOCX.js";
     import { parseODT, parseODS } from "./envelope/parseODF.js";
 
     const { createFFmpeg, fetchFile } = FFmpeg;
-    const ffmpeg = createFFmpeg({ 
-        log: true, 
-        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
-    });
+    const ffmpeg = createFFmpeg({ log: true, corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js' });
 
-    const formats = {
-        docs: [".html", ".txt"],
-        media: [".png", ".webp", ".mp3", ".mp4", ".gif"]
+    // --- EXPANDED FORMAT DATABASE ---
+    const engineMap = {
+        // IMAGE OUTPUTS
+        "png": ["webp", "jpg", "gif", "bmp", "tiff"],
+        "jpg": ["webp", "png", "gif", "bmp"],
+        "webp": ["png", "jpg", "gif"],
+        // VIDEO OUTPUTS
+        "mp4": ["webm", "avi", "mkv", "mov", "mp3", "gif"],
+        "mov": ["mp4", "webm", "mkv"],
+        "webm": ["mp4", "avi"],
+        // AUDIO OUTPUTS
+        "mp3": ["wav", "ogg", "m4a", "flac"],
+        "wav": ["mp3", "ogg", "flac"],
+        // DOC OUTPUTS (Envelope)
+        "docx": ["html", "txt", "pdf"],
+        "odt": ["html", "txt"],
+        "ods": ["html", "csv"]
     };
 
     let activeFile = null;
@@ -147,77 +153,70 @@
         setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    window.moveStep = function(n) {
+    window.moveStep = (n) => {
         document.querySelectorAll('.panel, .step').forEach(el => el.classList.remove('active'));
         document.getElementById('p'+n).classList.add('active');
         document.getElementById('s'+n).classList.add('active');
     };
 
-    function updateFormats() {
-        formatSel.innerHTML = formats[catSel.value].map(f => `<option value="${f}">${f.toUpperCase()}</option>`).join('');
-    }
-    catSel.onchange = updateFormats;
-    updateFormats();
-
+    // --- AUTO-DETECT ENGINE ---
     document.getElementById('fileIn').onchange = (e) => {
         activeFile = e.target.files[0];
-        if(activeFile) {
-            document.getElementById('file-status').innerText = activeFile.name.toUpperCase();
-            document.getElementById('to-2').disabled = false;
-            showAlert("FILE_LOADED");
-            catSel.value = (activeFile.type.includes('image') || activeFile.type.includes('video') || activeFile.type.includes('audio')) ? 'media' : 'docs';
-            updateFormats();
-        }
+        if(!activeFile) return;
+
+        const ext = activeFile.name.split('.').pop().toLowerCase();
+        document.getElementById('file-status').innerText = activeFile.name.toUpperCase();
+        document.getElementById('to-2').disabled = false;
+        
+        // Determine Core & Formats
+        const isDoc = ["docx", "odt", "ods"].includes(ext);
+        catSel.value = isDoc ? "docs" : "media";
+        
+        const targets = engineMap[ext] || ["png", "mp4", "mp3"]; // Fallback defaults
+        formatSel.innerHTML = targets.map(t => `<option value=".${t}">${t.toUpperCase()}</option>`).join('');
+        
+        showAlert("CORE_MATCHED: " + catSel.value.toUpperCase());
     };
 
     document.getElementById('to-2').onclick = () => moveStep(2);
 
     document.getElementById('execBtn').onclick = async function() {
         const preview = document.getElementById('preview-box');
-        con.innerHTML = `> INITIATING HANDSHAKE...`;
+        con.innerHTML = `> VERIFYING SECURITY...`;
         preview.style.display = 'none';
 
         if (!window.crossOriginIsolated) {
             con.innerHTML += "<br>> ERROR: SECURITY_BLOCK. CHECK COOP/COEP.";
-            showAlert("SECURITY_ERROR");
             return;
         }
 
         try {
-            if(catSel.value === 'docs' && formatSel.value === '.html') {
+            const outExt = formatSel.value;
+            if(catSel.value === 'docs' && outExt === '.html') {
                 const bytes = new Uint8Array(await activeFile.arrayBuffer());
                 const ext = activeFile.name.split('.').pop().toLowerCase();
                 let html = (ext === 'docx') ? await parseDOCX(bytes) : (ext === 'odt') ? await parseODT(bytes) : await parseODS(bytes);
-                con.innerHTML += "<br>> PARSE_SUCCESS.";
+                con.innerHTML += "<br>> RENDER_SUCCESS.";
                 preview.innerHTML = html; preview.style.display = 'block';
-                showAlert("RENDER_COMPLETE");
             } else {
                 if(!ffmpeg.isLoaded()) {
-                    con.innerHTML += "<br>> MOUNTING WASM CORE...";
+                    con.innerHTML += "<br>> LOADING WASM ENGINE...";
                     await ffmpeg.load();
                 }
-                con.innerHTML += `<br>> RE-ENCODING...`;
-                ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
+                con.innerHTML += `<br>> RE-ENCODING TO ${outExt.toUpperCase()}...`;
+                ffmpeg.FS('writeFile', 'input', await fetchFile(activeFile));
+                await ffmpeg.run('-i', 'input', 'output' + outExt);
                 
-                // RUN COMMAND
-                await ffmpeg.run('-i', 'in', 'out' + formatSel.value);
-                
-                // CHECK IF FILE EXISTS BEFORE READING
-                const folder = ffmpeg.FS('readdir', '/');
-                if(folder.includes('out' + formatSel.value)) {
-                    const data = ffmpeg.FS('readFile', 'out' + formatSel.value);
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(new Blob([data.buffer]));
-                    a.download = "export" + formatSel.value; a.click();
-                    con.innerHTML += "<br>> EXPORT_SUCCESS.";
-                    showAlert("DOWNLOAD_READY");
-                } else {
-                    throw new Error("FFMPEG_OUTPUT_MISSING");
-                }
+                const data = ffmpeg.FS('readFile', 'output' + outExt);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([data.buffer]));
+                a.download = "MyWeb_Export" + outExt; a.click();
+                con.innerHTML += "<br>> EXPORT_COMPLETE.";
+                showAlert("DOWNLOAD_READY");
             }
         } catch(err) {
-            con.innerHTML += "<br>> CRITICAL_ERROR: " + err.message;
-            showAlert("ENGINE_ERROR");
+            con.innerHTML += "<br>> ENGINE_ERROR: " + err.message;
+            showAlert("TASK_FAILED");
         }
     };
 
