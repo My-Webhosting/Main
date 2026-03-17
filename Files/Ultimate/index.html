@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JackImage Studio | Ultimate Converter</title>
+    <title>MyWeb | Ultimate Converter</title>
     
     <script src="./coi-serviceworker.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     
@@ -14,97 +13,103 @@
         :root { --bg: #ffffff; --txt: #000; --accent: #2563eb; --card: #fcfcfc; --border: #eee; --muted: #666; }
         [data-theme="dark"] { --bg: #0a0a0a; --txt: #fff; --accent: #3b82f6; --card: #16161a; --border: #27272a; --muted: #a1a1aa; }
         
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s; }
-        body { background: var(--bg); color: var(--txt); line-height: 1.6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--txt); transition: 0.3s; line-height: 1.6; }
 
-        /* Navigation - Shared Brand Style */
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 5%; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 100; }
-        
-        .nav-left { display: flex; align-items: center; gap: 20px; }
-        .home-btn { text-decoration: none; color: var(--txt); font-weight: 800; font-size: 0.9rem; padding: 8px 15px; border: 1px solid var(--border); border-radius: 8px; }
-        .home-btn:hover { background: var(--border); }
-        
-        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.1rem; }
-        .brand img { height: 32px; }
+        /* --- Navigation --- */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 5%; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-left img { height: 35px; cursor: pointer; }
+        .nav-left span { font-weight: 800; font-size: 1.1rem; }
+        .nav-right { display: flex; align-items: center; gap: 25px; }
+        .nav-link { text-decoration: none; color: var(--muted); font-size: 0.85rem; font-weight: 600; }
 
-        .workspace { max-width: 850px; margin: 50px auto; padding: 0 20px; }
-        
-        /* Stepper */
+        /* --- Workspace --- */
+        .workspace { max-width: 800px; margin: 50px auto; padding: 0 20px; }
         .stepper { display: flex; justify-content: space-between; margin-bottom: 40px; }
-        .step { flex: 1; text-align: center; }
-        .step-num { width: 32px; height: 32px; background: var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 800; font-size: 0.75rem; color: var(--muted); }
+        .step { flex: 1; text-align: center; opacity: 0.4; }
+        .step.active { opacity: 1; }
+        .step-num { width: 32px; height: 32px; background: var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 800; font-size: 0.75rem; }
         .step.active .step-num { background: var(--accent); color: white; }
-        .step-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+        .step-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Main Card */
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); min-height: 450px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 45px; box-shadow: 0 40px 100px rgba(0,0,0,0.3); }
         .panel { display: none; }
-        .panel.active { display: block; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .panel.active { display: block; animation: fadeInUp 0.4s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .dropzone { border: 2px dashed var(--border); padding: 70px 20px; border-radius: 20px; text-align: center; cursor: pointer; }
-        .pro-label { font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: block; }
-        .pro-select { width: 100%; padding: 15px; background: var(--bg); color: var(--txt); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; margin-bottom: 20px; }
+        .dropzone { border: 2px dashed var(--border); padding: 80px 20px; border-radius: 20px; text-align: center; cursor: pointer; }
+        .pro-label { font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; display: block; }
+        .pro-select { width: 100%; padding: 16px; background: var(--bg); color: var(--txt); border: 1px solid var(--border); border-radius: 12px; font-weight: 600; margin-bottom: 25px; outline: none; }
 
-        .viewport { background: #000; color: #00ff41; padding: 20px; border-radius: 12px; font-family: monospace; font-size: 0.8rem; min-height: 180px; overflow-y: auto; }
+        .viewport { background: #000; color: #00ff41; padding: 25px; border-radius: 14px; font-family: monospace; font-size: 0.8rem; min-height: 180px; overflow-y: auto; }
         
-        .btn { padding: 18px 30px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; width: 100%; margin-top: 10px; }
-        .btn-primary { background: var(--txt); color: var(--bg); }
-        .btn-secondary { background: var(--border); color: var(--muted); width: auto; }
+        /* Buttons */
+        .nav-btns { display: flex; gap: 12px; margin-top: 30px; }
+        .btn { padding: 18px; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; font-size: 0.9rem; transition: 0.2s; }
+        .btn-primary { background: var(--txt); color: var(--bg); flex: 2; }
+        .btn-secondary { background: var(--border); color: var(--muted); flex: 1; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        #envelope-preview { background: white; color: black; padding: 25px; border-radius: 12px; margin-top: 20px; display: none; border: 1px solid #ddd; }
+        #alert-toast { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; padding: 15px 25px; border-radius: 12px; font-weight: 800; font-size: 0.8rem; display: none; z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        #preview-box { background: white; color: black; padding: 25px; border-radius: 14px; margin-top: 25px; display: none; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="nav-left">
-        <a href="../index.html" class="home-btn">← Home</a>
-        <div class="brand">
-            <img src="../MYWEB!.png" id="main-logo" alt="Logo">
-            <span>JackImage Studio</span>
-        </div>
+        <img src="MYWEB2!.png" id="main-logo" alt="Logo" onclick="location.reload()">
+        <span>MyWebHosting</span>
     </div>
-    <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.4rem;">🌓</button>
+    <div class="nav-right">
+        <a href="../index.html" class="nav-link">Home</a>
+        <a href="https://jackimagestudio.github.io" class="nav-link">JackImage Studio</a>
+        <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.3rem;">🌓</button>
+    </div>
 </nav>
+
+<div id="alert-toast">SYSTEM MESSAGE</div>
 
 <div class="workspace">
     <div class="stepper">
-        <div class="step active" id="s1"><div class="step-num">1</div><div class="step-label">Import</div></div>
-        <div class="step" id="s2"><div class="step-num">2</div><div class="step-label">Logic</div></div>
+        <div class="step active" id="s1"><div class="step-num">1</div><div class="step-label">Upload</div></div>
+        <div class="step" id="s2"><div class="step-num">2</div><div class="step-label">Engine</div></div>
         <div class="step" id="s3"><div class="step-num">3</div><div class="step-label">Export</div></div>
     </div>
 
     <div class="card">
         <div class="panel active" id="p1">
             <div class="dropzone" id="dz">
-                <p style="font-weight: 600;">Drag & Drop Asset</p>
-                <p id="file-display" style="color: var(--accent); font-weight: 800; margin-top: 5px;">Awaiting Binary...</p>
+                <p style="font-weight: 800; font-size: 1.1rem;">Drop Asset Here</p>
+                <p id="file-status" style="color: var(--accent); font-weight: 800; margin-top: 5px; font-size: 0.75rem;">AWAITING BINARY</p>
                 <input type="file" id="fileIn" hidden>
             </div>
-            <button class="btn btn-primary" style="margin-top:20px" id="go-2" disabled>Proceed to Logic</button>
+            <div class="nav-btns">
+                <button class="btn btn-primary" id="to-2" disabled>Continue to Engine</button>
+            </div>
         </div>
 
         <div class="panel" id="p2">
-            <span class="pro-label">Category</span>
+            <span class="pro-label">Converter Core</span>
             <select id="cat-sel" class="pro-select">
-                <option value="docs">Documents (Envelope)</option>
-                <option value="media">Media (WASM Engine)</option>
+                <option value="docs">Envelope (Document Parser)</option>
+                <option value="media">WASM (Media Re-encode)</option>
             </select>
-            <span class="pro-label">Target Format</span>
+            <span class="pro-label">Format Selection</span>
             <select id="format-sel" class="pro-select"></select>
-            <div style="display:flex; gap:10px">
-                <button class="btn btn-secondary" onclick="move(1)">Back</button>
-                <button class="btn btn-primary" onclick="move(3)">Finalize</button>
+            <div class="nav-btns">
+                <button class="btn btn-secondary" onclick="moveStep(1)">Back</button>
+                <button class="btn btn-primary" onclick="moveStep(3)">Finalize Configuration</button>
             </div>
         </div>
 
         <div class="panel" id="p3">
-            <div class="viewport" id="console">> CORE_READY...</div>
-            <div id="envelope-preview"></div>
-            <div style="display:flex; gap:10px; margin-top:15px">
-                <button class="btn btn-secondary" onclick="move(2)">Back</button>
-                <button class="btn btn-primary" id="execBtn">INITIATE CONVERSION</button>
+            <div class="viewport" id="console">> READY...</div>
+            <div id="preview-box"></div>
+            <div class="nav-btns">
+                <button class="btn btn-secondary" onclick="moveStep(2)">Back</button>
+                <button class="btn btn-primary" id="execBtn">INITIATE EXPORT</button>
             </div>
         </div>
     </div>
@@ -118,21 +123,30 @@
     const ffmpeg = createFFmpeg({ log: false });
 
     const formats = {
-        docs: [".html", ".docx", ".pdf", ".odt"],
-        media: [".mp3", ".png", ".webp", ".mp4", ".gif"]
+        docs: [".html", ".txt", ".docx"],
+        media: [".png", ".webp", ".mp3", ".mp4", ".gif"]
     };
 
-    const fileIn = document.getElementById('fileIn');
-    const catSel = document.getElementById('cat-sel');
-    const formatSel = document.getElementById('format-sel');
     let activeFile = null;
 
-    // --- Logic ---
-    function move(step) {
-        document.querySelectorAll('.panel, .step').forEach(el => el.classList.remove('active'));
-        document.getElementById('p'+step).classList.add('active');
-        document.getElementById('s'+step).classList.add('active');
+    // --- System Alert ---
+    function showAlert(msg) {
+        const toast = document.getElementById('alert-toast');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
     }
+
+    // --- Navigation (Global Fix) ---
+    window.moveStep = function(n) {
+        document.querySelectorAll('.panel, .step').forEach(el => el.classList.remove('active'));
+        document.getElementById('p'+n).classList.add('active');
+        document.getElementById('s'+n).classList.add('active');
+    };
+
+    // --- Logic ---
+    const catSel = document.getElementById('cat-sel');
+    const formatSel = document.getElementById('format-sel');
 
     function updateFormats() {
         formatSel.innerHTML = formats[catSel.value].map(f => `<option value="${f}">${f.toUpperCase()}</option>`).join('');
@@ -140,54 +154,61 @@
     catSel.onchange = updateFormats;
     updateFormats();
 
-    document.getElementById('dz').onclick = () => fileIn.click();
-    fileIn.onchange = (e) => {
+    document.getElementById('dz').onclick = () => document.getElementById('fileIn').click();
+    document.getElementById('fileIn').onchange = (e) => {
         activeFile = e.target.files[0];
         if(activeFile) {
-            document.getElementById('file-display').innerText = activeFile.name;
-            document.getElementById('go-2').disabled = false;
-            if(activeFile.type.includes('image') || activeFile.type.includes('video') || activeFile.type.includes('audio')) {
-                catSel.value = 'media';
-            } else { catSel.value = 'docs'; }
+            document.getElementById('file-status').innerText = activeFile.name.toUpperCase();
+            document.getElementById('to-2').disabled = false;
+            showAlert("FILE MOUNTED");
+            catSel.value = (activeFile.type.includes('image') || activeFile.type.includes('video') || activeFile.type.includes('audio')) ? 'media' : 'docs';
             updateFormats();
         }
     };
-    document.getElementById('go-2').onclick = () => move(2);
+    document.getElementById('to-2').onclick = () => moveStep(2);
 
     // --- Execution ---
     document.getElementById('execBtn').onclick = async function() {
         const con = document.getElementById('console');
-        const prev = document.getElementById('envelope-preview');
-        con.innerHTML = `> INITIATING ENGINE...`;
-        prev.style.display = 'none';
+        const preview = document.getElementById('preview-box');
+        con.innerHTML = `> PROCESSING: ${activeFile.name}`;
+        preview.style.display = 'none';
 
-        if(catSel.value === 'docs' && formatSel.value === '.html') {
-            const bytes = new Uint8Array(await activeFile.arrayBuffer());
-            const ext = activeFile.name.split('.').pop().toLowerCase();
-            let html = "";
-            if(ext === 'docx') html = await parseDOCX(bytes);
-            else if(ext === 'odt') html = await parseODT(bytes);
-            else if(ext === 'ods') html = await parseODS(bytes);
-            con.innerHTML += "<br>> ENVELOPE PARSE SUCCESS.";
-            prev.innerHTML = html; prev.style.display = 'block';
-        } else {
-            if(!ffmpeg.isLoaded()) await ffmpeg.load();
-            con.innerHTML += "<br>> WASM CONVERTING...";
-            ffmpeg.FS('writeFile', 'i', await fetchFile(activeFile));
-            await ffmpeg.run('-i', 'i', 'o' + formatSel.value);
-            const data = ffmpeg.FS('readFile', 'o' + formatSel.value);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([data.buffer]));
-            a.download = "export" + formatSel.value; a.click();
-            con.innerHTML += "<br>> DOWNLOAD READY.";
+        try {
+            if(catSel.value === 'docs' && formatSel.value === '.html') {
+                const bytes = new Uint8Array(await activeFile.arrayBuffer());
+                const ext = activeFile.name.split('.').pop().toLowerCase();
+                let html = (ext === 'docx') ? await parseDOCX(bytes) : (ext === 'odt') ? await parseODT(bytes) : await parseODS(bytes);
+                con.innerHTML += "<br>> PARSE SUCCESSFUL.";
+                preview.innerHTML = html; preview.style.display = 'block';
+                showAlert("DOCUMENT RENDERED");
+            } else {
+                if(!ffmpeg.isLoaded()) {
+                    con.innerHTML += "<br>> LOADING WASM CORE...";
+                    await ffmpeg.load();
+                }
+                con.innerHTML += `<br>> RE-ENCODING...`;
+                ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
+                await ffmpeg.run('-i', 'in', 'out' + formatSel.value);
+                const data = ffmpeg.FS('readFile', 'out' + formatSel.value);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([data.buffer]));
+                a.download = "export" + formatSel.value; a.click();
+                con.innerHTML += "<br>> EXPORT READY.";
+                showAlert("DOWNLOAD TRIGGERED");
+            }
+        } catch(err) {
+            con.innerHTML += "<br>> ERROR: " + err.message;
+            showAlert("ENGINE ERROR");
         }
     };
 
-    // Theme Switcher
+    // --- Theme ---
     document.getElementById('theme-toggle').onclick = () => {
-        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
-        document.getElementById('main-logo').src = theme === 'dark' ? '../MYWEB2!.png' : '../MYWEB!.png';
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.getElementById('main-logo').src = next === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     };
 </script>
 </body>
