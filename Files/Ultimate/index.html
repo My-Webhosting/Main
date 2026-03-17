@@ -6,148 +6,199 @@
     <title>MyWeb | Ultimate Converter</title>
     
     <script src="./coi-serviceworker.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --bg: #ffffff; --card: #f8fafc; --txt: #0f172a; --accent: #2563eb; --border: #e2e8f0; --muted: #64748b; }
-        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --txt: #f8fafc; --accent: #3b82f6; --border: #334155; --muted: #94a3b8; }
+        /* TRUE BLACK THEME */
+        :root { 
+            --bg: #ffffff; 
+            --card: #f8fafc; 
+            --txt: #000000; 
+            --accent: #2563eb; 
+            --border: #e2e8f0; 
+        }
+        [data-theme="dark"] { 
+            --bg: #000000; /* Pure Black */
+            --card: #0a0a0a; /* Deep Charcoal */
+            --txt: #ffffff; 
+            --accent: #3b82f6; 
+            --border: #1a1a1a; 
+        }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--txt); transition: 0.3s; min-height: 100vh; }
+        body { background: var(--bg); color: var(--txt); transition: 0.2s; min-height: 100vh; }
 
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 8%; background: var(--bg); border-bottom: 1px solid var(--border); }
-        .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.2rem; }
-        .nav-brand img { height: 34px; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 8%; background: var(--bg); border-bottom: 1px solid var(--border); }
+        .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 1.3rem; }
+        .nav-brand img { height: 32px; }
 
-        .wrapper { max-width: 650px; margin: 60px auto; padding: 0 20px; }
-        .main-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .wrapper { max-width: 600px; margin: 80px auto; padding: 0 20px; }
+        .main-card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 45px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative; }
         
-        /* THE CLICKABLE ZONE - High Z-Index to prevent blocking */
         .upload-zone { 
             border: 2px dashed var(--border); 
-            border-radius: 16px; 
+            border-radius: 20px; 
             padding: 60px 20px; 
             text-align: center; 
             cursor: pointer; 
-            background: var(--bg);
             position: relative;
-            z-index: 10;
+            background: var(--bg);
         }
+        .upload-zone:hover { border-color: var(--accent); }
+        #fileInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+        .settings-area { margin-top: 35px; display: none; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        label { display: block; font-size: 0.75rem; font-weight: 900; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
         
-        /* Transparent file input that covers the whole box */
-        #fileInput {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
+        select { 
+            width: 100%; 
+            padding: 18px; 
+            border-radius: 14px; 
+            border: 1px solid var(--border); 
+            background: var(--bg); 
+            color: var(--txt); 
+            font-weight: 700; 
+            margin-bottom: 25px;
+            outline: none;
             cursor: pointer;
-            width: 100%;
         }
 
-        .control-group { margin-top: 30px; display: none; }
-        select { width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--txt); font-weight: 600; margin-bottom: 20px; appearance: none; }
-        .btn { width: 100%; padding: 18px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; background: var(--accent); color: white; }
+        .btn-convert { 
+            width: 100%; 
+            padding: 20px; 
+            border-radius: 14px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            border: none; 
+            background: var(--accent); 
+            color: white; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
         
-        .console { background: #000; color: #10b981; padding: 20px; border-radius: 12px; font-family: monospace; font-size: 0.8rem; margin-top: 20px; display: none; }
+        .console { background: #000; color: #4ade80; padding: 20px; border-radius: 14px; font-family: monospace; font-size: 0.8rem; margin-top: 25px; display: none; border: 1px solid #111; }
+
+        .version-badge { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 2px; width: 100%; text-align: center; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="nav-brand"><img src="MYWEB2!.png"> <span>MyWebHosting</span></div>
-    <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.5rem;">🌓</button>
+    <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.6rem;">🌓</button>
 </nav>
 
 <div class="wrapper">
     <div class="main-card">
         <div class="upload-zone">
-            <p id="status-text" style="font-weight: 800;">CLICK OR DRAG FILE HERE</p>
+            <h2 id="status-text" style="font-weight: 900;">SELECT SOURCE FILE</h2>
+            <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 8px;">Images, Video, or Audio</p>
             <input type="file" id="fileInput">
         </div>
 
-        <div id="settings" class="control-group">
-            <label style="font-size: 0.7rem; font-weight: 800; color: var(--muted); margin-bottom: 8px; display: block;">TARGET FORMAT</label>
+        <div id="settings" class="settings-area">
+            <label>Available Formats for this file</label>
             <select id="format-select"></select>
-            <button id="convert-btn" class="btn">Start Conversion</button>
+            <button id="convert-btn" class="btn-convert">Convert Now</button>
         </div>
 
         <div id="log-box" class="console"></div>
+        <div class="version-badge">Build v1.5.3 | Stable Core</div>
     </div>
 </div>
 
 <script>
-    const themeBtn = document.getElementById('theme-toggle');
-    themeBtn.addEventListener('click', () => {
-        const doc = document.documentElement;
-        const newTheme = doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        doc.setAttribute('data-theme', newTheme);
-    });
+    // SCRIPT 1: UI & THEME (Always active)
+    const doc = document.documentElement;
+    document.getElementById('theme-toggle').onclick = () => {
+        doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    };
 
     const fileIn = document.getElementById('fileInput');
-    fileIn.addEventListener('change', (e) => {
-        if(e.target.files[0]) {
-            document.getElementById('status-text').innerText = "READY: " + e.target.files[0].name.toUpperCase();
+    fileIn.onchange = (e) => {
+        const file = e.target.files[0];
+        if(file) {
+            document.getElementById('status-text').innerText = file.name.toUpperCase();
             document.getElementById('settings').style.display = 'block';
-            window.setupFormats(e.target.files[0]);
+            if (window.populateFormats) window.populateFormats(file);
         }
-    });
+    };
 </script>
 
 <script type="module">
+    // SCRIPT 2: CONVERSION ENGINE
     import { initializeImageMagick, ImageMagick, MagickFormat } from 'https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.30/dist/index.mjs';
     import { createFFmpeg, fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
 
-    const library = {
-        image: ["png", "jpg", "webp", "gif", "ico", "bmp"],
-        video: ["mp4", "webm", "avi", "mov", "mp3"],
+    // Strict Format Groups
+    const FORMAT_GROUPS = {
+        image: ["png", "jpg", "webp", "gif", "ico", "bmp", "tiff"],
+        video: ["mp4", "webm", "avi", "mov", "gif"],
         audio: ["mp3", "wav", "ogg", "flac"]
     };
 
     let activeFile = null;
 
-    window.setupFormats = (file) => {
+    window.populateFormats = (file) => {
         activeFile = file;
-        const type = file.type.split('/')[0] || 'image';
-        const list = library[type] || library.image;
+        const type = file.type.split('/')[0];
+        const ext = file.name.split('.').pop().toLowerCase();
+        
+        // Find the correct group or default to image
+        const list = FORMAT_GROUPS[type] || FORMAT_GROUPS.image;
+        
+        // Filter out the current extension and build the list
         const sel = document.getElementById('format-select');
-        sel.innerHTML = list.map(f => `<option value="${f}">${f.toUpperCase()}</option>`).join('');
+        sel.innerHTML = list
+            .filter(f => f !== ext)
+            .map(f => `<option value="${f}">Convert to ${f.toUpperCase()}</option>`)
+            .join('');
+            
+        if(sel.innerHTML === "") {
+            sel.innerHTML = `<option>No conversions available</option>`;
+        }
     };
 
     document.getElementById('convert-btn').onclick = async () => {
         const target = document.getElementById('format-select').value;
         const log = document.getElementById('log-box');
         log.style.display = 'block';
-        log.innerHTML = `> STARTING...`;
+        log.innerHTML = `> MOUNTING WASM...`;
 
         try {
             if (activeFile.type.startsWith('image')) {
                 await initializeImageMagick();
                 const bytes = new Uint8Array(await activeFile.arrayBuffer());
+                const fKey = target.charAt(0).toUpperCase() + target.slice(1).replace('jpg', 'Jpeg');
+                
                 ImageMagick.read(bytes, (img) => {
                     img.write(data => {
-                        save(new Blob([data]), `out.${target}`);
-                        log.innerHTML += `<br>> SUCCESS.`;
-                    }, MagickFormat[target.charAt(0).toUpperCase() + target.slice(1).replace('jpg', 'Jpeg')]);
+                        const blob = new Blob([data]);
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `myweb_${target}.${target}`;
+                        a.click();
+                        log.innerHTML += `<br>> IMAGE CONVERSION SUCCESS`;
+                    }, MagickFormat[fKey] || MagickFormat.Png);
                 });
             } else {
                 const ffmpeg = createFFmpeg({ log: true });
                 await ffmpeg.load();
-                ffmpeg.FS('writeFile', 'input', await fetchFile(activeFile));
-                await ffmpeg.run('-i', 'input', `output.${target}`);
-                const data = ffmpeg.FS('readFile', `output.${target}`);
-                save(new Blob([data.buffer]), `out.${target}`);
-                log.innerHTML += `<br>> SUCCESS.`;
+                ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
+                await ffmpeg.run('-i', 'in', `out.${target}`);
+                const data = ffmpeg.FS('readFile', `out.${target}`);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([data.buffer]));
+                a.download = `myweb_${target}.${target}`;
+                a.click();
+                log.innerHTML += `<br>> MEDIA TRANSCODE SUCCESS`;
             }
         } catch (e) {
             log.innerHTML += `<br>> ERROR: ${e.message}`;
         }
     };
-
-    function save(blob, name) {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = name;
-        a.click();
-    }
 </script>
 </body>
 </html>
