@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyWebHosting | Free Digital Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Mode Variables */
+            --primary-text: #000000;
+            --accent-blue: #2563eb;
+            --bg-color: #ffffff;
+            --card-bg: #fcfcfc;
+            --border: #eeeeee;
+            --hero-bg: radial-gradient(circle at center, #fafafa 0%, #ffffff 100%);
+            --muted-text: #666;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode Variables */
+            --primary-text: #ffffff;
+            --accent-blue: #3b82f6;
+            --bg-color: #0a0a0a;
+            --card-bg: #16161a;
+            --border: #27272a;
+            --hero-bg: radial-gradient(circle at center, #111111 0%, #0a0a0a 100%);
+            --muted-text: #a1a1aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            line-height: 1.6;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 8%;
+            background: var(--bg-color);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--primary-text);
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--muted-text);
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--primary-text); }
+
+        #theme-toggle {
+            background: var(--border);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-left: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Hero --- */
+        .hero {
+            padding: 80px 8% 60px;
+            text-align: center;
+            background: var(--hero-bg);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--muted-text);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--border);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            color: var(--primary-text);
+        }
+
+        /* --- Services --- */
+        .services-section {
+            padding: 40px 8% 100px;
+        }
+
+        .section-header {
+            margin-bottom: 50px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover {
+            border-color: var(--primary-text);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            color: var(--muted-text);
+            margin-bottom: 20px;
+        }
+
+        .status-tag {
+            font-size: 0.75rem;
+            background: #e1ffeb;
+            color: #1b8d45;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .coming-soon {
+            background: #fff4e5;
+            color: #b36b00;
+        }
+
+        .btn-action {
+            display: inline-block;
+            padding: 12px 28px;
+            background: var(--primary-text);
+            color: var(--bg-color);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.4rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" class="logo-container">
+            <img src="MYWEB!.png" alt="MyWebHosting Logo" class="logo-img" id="main-logo">
+            <span class="logo-text">MyWebHosting</span>
+        </a>
+        <div class="nav-links">
+            <a href="#">Github</a>
+            <a href="#">Support</a>
+            <a href="#" class="btn-action" style="padding: 8px 18px;">Get Started</a>
+            <button id="theme-toggle" aria-label="Toggle dark mode">🌓</button>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <span class="badge">Always Free & Open</span>
+        <h1>Powerful Tools. <br>Zero Cost.</h1>
+        <p>Your hub for essential web utilities. We provide professional-grade file and image tools without the premium price tag.</p>
+        <a href="#services" class="btn-action">Explore Services</a>
+    </header>
+
+    <section class="services-section" id="services">
+        <div class="section-header">
+            <h2>Our Free Services</h2>
+        </div>
+
+        <div class="grid">
+            <a href="files.html" class="card">
+                <h3>📁 File Center <span class="status-tag">Live</span></h3>
+                <p>Securely manage your assets. Includes Convert To It (p2r3) utilities.</p>
+                <strong style="color: var(--accent-blue)">Open Files →</strong>
+            </a>
+
+            <a href="#" class="card">
+                <h3>🖼️ JackImage Studio <span class="status-tag">Live</span></h3>
+                <p>Professional image adjustments and creative processing in your browser.</p>
+                <strong style="color: var(--accent-blue)">Start Creating →</strong>
+            </a>
+
+            <div class="card" style="opacity: 0.8; cursor: default;">
+                <h3>🚀 More to Come <span class="status-tag coming-soon">In Dev</span></h3>
+                <p>We're building new utilities for creators. Suggestions are always appreciated to help us grow!</p>
+            </div>
+        </div>
+    </section><section style="padding: 80px 8%; background: var(--card-bg); border-top: 1px solid var(--border);">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <h2 style="margin-bottom: 1rem;">Have an Idea?</h2>
+        <p style="color: var(--muted-text); margin-bottom: 2rem;">We're building for you. Tell us what tools you need next.</p>
+        <form style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" placeholder="Your Suggestion (e.g. Video Compressor)" style="padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--primary-text);">
+            <button type="submit" class="btn-action">Submit Idea</button>
+        </form>
+    </div>
+</section>
+
+    <footer style="padding: 60px 8%; border-top: 1px solid var(--border); color: var(--muted-text); font-size: 0.9rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <p>&copy; 2026 MyWebHosting. Free tools for everyone.</p>
+            <p>Powered by Bazzite & Git LFS</p>
+        </div>
+    </footer>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const logoImg = document.getElementById('main-logo');
+
+        function updateLogo(theme) {
+            if (theme === 'dark') {
+                logoImg.src = 'MYWEB2!.png';
+            } else {
+                logoImg.src = 'MYWEB!.png';
+            }
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateLogo(savedTheme);
+
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateLogo(newTheme);
+        });
+    </script>
+</body>
+</html>
