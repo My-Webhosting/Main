@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JackImage Studio | Ultimate Converter</title>
+    
+    <script src="./coi-serviceworker.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    
+    <style>
+        :root { --bg: #ffffff; --txt: #000; --accent: #2563eb; --card: #fcfcfc; --border: #eee; --muted: #666; }
+        [data-theme="dark"] { --bg: #0a0a0a; --txt: #fff; --accent: #3b82f6; --card: #16161a; --border: #27272a; --muted: #a1a1aa; }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s; }
+        body { background: var(--bg); color: var(--txt); line-height: 1.6; }
+
+        /* Navigation - Shared Brand Style */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 5%; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 100; }
+        
+        .nav-left { display: flex; align-items: center; gap: 20px; }
+        .home-btn { text-decoration: none; color: var(--txt); font-weight: 800; font-size: 0.9rem; padding: 8px 15px; border: 1px solid var(--border); border-radius: 8px; }
+        .home-btn:hover { background: var(--border); }
+        
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.1rem; }
+        .brand img { height: 32px; }
+
+        .workspace { max-width: 850px; margin: 50px auto; padding: 0 20px; }
+        
+        /* Stepper */
+        .stepper { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .step { flex: 1; text-align: center; }
+        .step-num { width: 32px; height: 32px; background: var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 800; font-size: 0.75rem; color: var(--muted); }
+        .step.active .step-num { background: var(--accent); color: white; }
+        .step-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+        /* Main Card */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); min-height: 450px; }
+        .panel { display: none; }
+        .panel.active { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dropzone { border: 2px dashed var(--border); padding: 70px 20px; border-radius: 20px; text-align: center; cursor: pointer; }
+        .pro-label { font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .pro-select { width: 100%; padding: 15px; background: var(--bg); color: var(--txt); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; margin-bottom: 20px; }
+
+        .viewport { background: #000; color: #00ff41; padding: 20px; border-radius: 12px; font-family: monospace; font-size: 0.8rem; min-height: 180px; overflow-y: auto; }
+        
+        .btn { padding: 18px 30px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; width: 100%; margin-top: 10px; }
+        .btn-primary { background: var(--txt); color: var(--bg); }
+        .btn-secondary { background: var(--border); color: var(--muted); width: auto; }
+
+        #envelope-preview { background: white; color: black; padding: 25px; border-radius: 12px; margin-top: 20px; display: none; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <a href="../index.html" class="home-btn">← Home</a>
+        <div class="brand">
+            <img src="../MYWEB!.png" id="main-logo" alt="Logo">
+            <span>JackImage Studio</span>
+        </div>
+    </div>
+    <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.4rem;">🌓</button>
+</nav>
+
+<div class="workspace">
+    <div class="stepper">
+        <div class="step active" id="s1"><div class="step-num">1</div><div class="step-label">Import</div></div>
+        <div class="step" id="s2"><div class="step-num">2</div><div class="step-label">Logic</div></div>
+        <div class="step" id="s3"><div class="step-num">3</div><div class="step-label">Export</div></div>
+    </div>
+
+    <div class="card">
+        <div class="panel active" id="p1">
+            <div class="dropzone" id="dz">
+                <p style="font-weight: 600;">Drag & Drop Asset</p>
+                <p id="file-display" style="color: var(--accent); font-weight: 800; margin-top: 5px;">Awaiting Binary...</p>
+                <input type="file" id="fileIn" hidden>
+            </div>
+            <button class="btn btn-primary" style="margin-top:20px" id="go-2" disabled>Proceed to Logic</button>
+        </div>
+
+        <div class="panel" id="p2">
+            <span class="pro-label">Category</span>
+            <select id="cat-sel" class="pro-select">
+                <option value="docs">Documents (Envelope)</option>
+                <option value="media">Media (WASM Engine)</option>
+            </select>
+            <span class="pro-label">Target Format</span>
+            <select id="format-sel" class="pro-select"></select>
+            <div style="display:flex; gap:10px">
+                <button class="btn btn-secondary" onclick="move(1)">Back</button>
+                <button class="btn btn-primary" onclick="move(3)">Finalize</button>
+            </div>
+        </div>
+
+        <div class="panel" id="p3">
+            <div class="viewport" id="console">> CORE_READY...</div>
+            <div id="envelope-preview"></div>
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button class="btn btn-secondary" onclick="move(2)">Back</button>
+                <button class="btn btn-primary" id="execBtn">INITIATE CONVERSION</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import parseDOCX from "./envelope/parseDOCX.js";
+    import { parseODT, parseODS } from "./envelope/parseODF.js";
+
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({ log: false });
+
+    const formats = {
+        docs: [".html", ".docx", ".pdf", ".odt"],
+        media: [".mp3", ".png", ".webp", ".mp4", ".gif"]
+    };
+
+    const fileIn = document.getElementById('fileIn');
+    const catSel = document.getElementById('cat-sel');
+    const formatSel = document.getElementById('format-sel');
+    let activeFile = null;
+
+    // --- Logic ---
+    function move(step) {
+        document.querySelectorAll('.panel, .step').forEach(el => el.classList.remove('active'));
+        document.getElementById('p'+step).classList.add('active');
+        document.getElementById('s'+step).classList.add('active');
+    }
+
+    function updateFormats() {
+        formatSel.innerHTML = formats[catSel.value].map(f => `<option value="${f}">${f.toUpperCase()}</option>`).join('');
+    }
+    catSel.onchange = updateFormats;
+    updateFormats();
+
+    document.getElementById('dz').onclick = () => fileIn.click();
+    fileIn.onchange = (e) => {
+        activeFile = e.target.files[0];
+        if(activeFile) {
+            document.getElementById('file-display').innerText = activeFile.name;
+            document.getElementById('go-2').disabled = false;
+            if(activeFile.type.includes('image') || activeFile.type.includes('video') || activeFile.type.includes('audio')) {
+                catSel.value = 'media';
+            } else { catSel.value = 'docs'; }
+            updateFormats();
+        }
+    };
+    document.getElementById('go-2').onclick = () => move(2);
+
+    // --- Execution ---
+    document.getElementById('execBtn').onclick = async function() {
+        const con = document.getElementById('console');
+        const prev = document.getElementById('envelope-preview');
+        con.innerHTML = `> INITIATING ENGINE...`;
+        prev.style.display = 'none';
+
+        if(catSel.value === 'docs' && formatSel.value === '.html') {
+            const bytes = new Uint8Array(await activeFile.arrayBuffer());
+            const ext = activeFile.name.split('.').pop().toLowerCase();
+            let html = "";
+            if(ext === 'docx') html = await parseDOCX(bytes);
+            else if(ext === 'odt') html = await parseODT(bytes);
+            else if(ext === 'ods') html = await parseODS(bytes);
+            con.innerHTML += "<br>> ENVELOPE PARSE SUCCESS.";
+            prev.innerHTML = html; prev.style.display = 'block';
+        } else {
+            if(!ffmpeg.isLoaded()) await ffmpeg.load();
+            con.innerHTML += "<br>> WASM CONVERTING...";
+            ffmpeg.FS('writeFile', 'i', await fetchFile(activeFile));
+            await ffmpeg.run('-i', 'i', 'o' + formatSel.value);
+            const data = ffmpeg.FS('readFile', 'o' + formatSel.value);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([data.buffer]));
+            a.download = "export" + formatSel.value; a.click();
+            con.innerHTML += "<br>> DOWNLOAD READY.";
+        }
+    };
+
+    // Theme Switcher
+    document.getElementById('theme-toggle').onclick = () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.getElementById('main-logo').src = theme === 'dark' ? '../MYWEB2!.png' : '../MYWEB!.png';
+    };
+</script>
+</body>
+</html>
