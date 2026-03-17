@@ -9,21 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* TRUE BLACK THEME */
-        :root { 
-            --bg: #ffffff; 
-            --card: #f8fafc; 
-            --txt: #000000; 
-            --accent: #2563eb; 
-            --border: #e2e8f0; 
-        }
-        [data-theme="dark"] { 
-            --bg: #000000; /* Pure Black */
-            --card: #0a0a0a; /* Deep Charcoal */
-            --txt: #ffffff; 
-            --accent: #3b82f6; 
-            --border: #1a1a1a; 
-        }
+        :root { --bg: #ffffff; --card: #f8fafc; --txt: #000000; --accent: #2563eb; --border: #e2e8f0; }
+        [data-theme="dark"] { --bg: #000000; --card: #0a0a0a; --txt: #ffffff; --accent: #3b82f6; --border: #1a1a1a; }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--txt); transition: 0.2s; min-height: 100vh; }
@@ -35,58 +22,28 @@
         .wrapper { max-width: 600px; margin: 80px auto; padding: 0 20px; }
         .main-card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 45px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative; }
         
-        .upload-zone { 
-            border: 2px dashed var(--border); 
-            border-radius: 20px; 
-            padding: 60px 20px; 
-            text-align: center; 
-            cursor: pointer; 
-            position: relative;
-            background: var(--bg);
-        }
-        .upload-zone:hover { border-color: var(--accent); }
-        #fileInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .upload-zone { border: 2px dashed var(--border); border-radius: 20px; padding: 60px 20px; text-align: center; cursor: pointer; position: relative; background: var(--bg); }
+        #fileInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 20; }
 
-        .settings-area { margin-top: 35px; display: none; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        .settings-area { margin-top: 35px; display: none; }
         label { display: block; font-size: 0.75rem; font-weight: 900; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
         
-        select { 
-            width: 100%; 
-            padding: 18px; 
-            border-radius: 14px; 
-            border: 1px solid var(--border); 
-            background: var(--bg); 
-            color: var(--txt); 
-            font-weight: 700; 
-            margin-bottom: 25px;
-            outline: none;
-            cursor: pointer;
-        }
+        select { width: 100%; padding: 18px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--txt); font-weight: 700; margin-bottom: 25px; outline: none; }
 
-        .btn-convert { 
-            width: 100%; 
-            padding: 20px; 
-            border-radius: 14px; 
-            font-weight: 900; 
-            cursor: pointer; 
-            border: none; 
-            background: var(--accent); 
-            color: white; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .btn-convert { width: 100%; padding: 20px; border-radius: 14px; font-weight: 900; cursor: pointer; border: none; background: var(--accent); color: white; text-transform: uppercase; }
         
         .console { background: #000; color: #4ade80; padding: 20px; border-radius: 14px; font-family: monospace; font-size: 0.8rem; margin-top: 25px; display: none; border: 1px solid #111; }
 
-        .version-badge { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 2px; width: 100%; text-align: center; }
+        .version-badge { width: 100%; text-align: center; font-size: 0.65rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-brand"><img src="MYWEB2!.png"> <span>MyWebHosting</span></div>
+    <div class="nav-brand">
+        <img id="nav-logo" src="MYWEB2!.png"> 
+        <span>MyWebHosting</span>
+    </div>
     <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.6rem;">🌓</button>
 </nav>
 
@@ -94,28 +51,36 @@
     <div class="main-card">
         <div class="upload-zone">
             <h2 id="status-text" style="font-weight: 900;">SELECT SOURCE FILE</h2>
-            <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 8px;">Images, Video, or Audio</p>
+            <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 8px;">Upload image, video, or audio</p>
             <input type="file" id="fileInput">
         </div>
 
         <div id="settings" class="settings-area">
-            <label>Available Formats for this file</label>
+            <label>Available Formats</label>
             <select id="format-select"></select>
             <button id="convert-btn" class="btn-convert">Convert Now</button>
         </div>
 
         <div id="log-box" class="console"></div>
-        <div class="version-badge">Build v1.5.3 | Stable Core</div>
     </div>
+    <div class="version-badge">Build v1.5.4 | Stable Engine</div>
 </div>
 
 <script>
-    // SCRIPT 1: UI & THEME (Always active)
+    // THEME & LOGO LOGIC
     const doc = document.documentElement;
+    const logo = document.getElementById('nav-logo');
+
     document.getElementById('theme-toggle').onclick = () => {
-        doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        const isDark = doc.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+        doc.setAttribute('data-theme', newTheme);
+        
+        // Correct Logo Assignment
+        logo.src = (newTheme === 'light') ? 'MYWEB!.png' : 'MYWEB2!.png';
     };
 
+    // FILE INPUT DETECTION
     const fileIn = document.getElementById('fileInput');
     fileIn.onchange = (e) => {
         const file = e.target.files[0];
@@ -128,11 +93,9 @@
 </script>
 
 <script type="module">
-    // SCRIPT 2: CONVERSION ENGINE
     import { initializeImageMagick, ImageMagick, MagickFormat } from 'https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.30/dist/index.mjs';
     import { createFFmpeg, fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
 
-    // Strict Format Groups
     const FORMAT_GROUPS = {
         image: ["png", "jpg", "webp", "gif", "ico", "bmp", "tiff"],
         video: ["mp4", "webm", "avi", "mov", "gif"],
@@ -143,32 +106,46 @@
 
     window.populateFormats = (file) => {
         activeFile = file;
-        const type = file.type.split('/')[0];
         const ext = file.name.split('.').pop().toLowerCase();
         
-        // Find the correct group or default to image
-        const list = FORMAT_GROUPS[type] || FORMAT_GROUPS.image;
-        
-        // Filter out the current extension and build the list
+        // BETTER DETECTION: Check mime-type, but fallback to extension if browser is unsure
+        let category = 'image'; // Default fallback
+        if (file.type.startsWith('video') || ["mp4", "webm", "avi", "mov", "mkv"].includes(ext)) {
+            category = 'video';
+        } else if (file.type.startsWith('audio') || ["mp3", "wav", "ogg", "flac", "m4a"].includes(ext)) {
+            category = 'audio';
+        } else if (file.type.startsWith('image') || ["png", "jpg", "jpeg", "webp", "gif", "ico", "bmp"].includes(ext)) {
+            category = 'image';
+        }
+
+        const list = FORMAT_GROUPS[category];
         const sel = document.getElementById('format-select');
+        
+        // Clear and fill
         sel.innerHTML = list
-            .filter(f => f !== ext)
-            .map(f => `<option value="${f}">Convert to ${f.toUpperCase()}</option>`)
+            .filter(f => f !== ext && !(f === 'jpg' && ext === 'jpeg'))
+            .map(f => `<option value="${f}">${f.toUpperCase()}</option>`)
             .join('');
             
-        if(sel.innerHTML === "") {
-            sel.innerHTML = `<option>No conversions available</option>`;
+        if (sel.innerHTML === "") {
+            sel.innerHTML = `<option value="">No compatible formats found</option>`;
         }
     };
 
     document.getElementById('convert-btn').onclick = async () => {
         const target = document.getElementById('format-select').value;
+        if (!target) return;
+
         const log = document.getElementById('log-box');
         log.style.display = 'block';
-        log.innerHTML = `> MOUNTING WASM...`;
+        log.innerHTML = `> PREPARING WASM...`;
 
         try {
-            if (activeFile.type.startsWith('image')) {
+            const ext = activeFile.name.split('.').pop().toLowerCase();
+            const isImage = FORMAT_GROUPS.image.includes(target);
+
+            if (isImage && !["mp4", "webm", "avi"].includes(ext)) {
+                log.innerHTML += `<br>> BOOTING MAGICK...`;
                 await initializeImageMagick();
                 const bytes = new Uint8Array(await activeFile.arrayBuffer());
                 const fKey = target.charAt(0).toUpperCase() + target.slice(1).replace('jpg', 'Jpeg');
@@ -176,29 +153,31 @@
                 ImageMagick.read(bytes, (img) => {
                     img.write(data => {
                         const blob = new Blob([data]);
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = `myweb_${target}.${target}`;
-                        a.click();
-                        log.innerHTML += `<br>> IMAGE CONVERSION SUCCESS`;
+                        triggerDownload(blob, `myweb_export.${target}`);
+                        log.innerHTML += `<br>> SUCCESS: IMAGE READY`;
                     }, MagickFormat[fKey] || MagickFormat.Png);
                 });
             } else {
+                log.innerHTML += `<br>> BOOTING FFMPEG...`;
                 const ffmpeg = createFFmpeg({ log: true });
                 await ffmpeg.load();
                 ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
                 await ffmpeg.run('-i', 'in', `out.${target}`);
                 const data = ffmpeg.FS('readFile', `out.${target}`);
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob([data.buffer]));
-                a.download = `myweb_${target}.${target}`;
-                a.click();
-                log.innerHTML += `<br>> MEDIA TRANSCODE SUCCESS`;
+                triggerDownload(new Blob([data.buffer]), `myweb_export.${target}`);
+                log.innerHTML += `<br>> SUCCESS: EXPORT READY`;
             }
         } catch (e) {
-            log.innerHTML += `<br>> ERROR: ${e.message}`;
+            log.innerHTML += `<br>> CRITICAL ERROR: ${e.message}`;
         }
     };
+
+    function triggerDownload(blob, name) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+    }
 </script>
 </body>
 </html>
