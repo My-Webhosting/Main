@@ -18,7 +18,7 @@
             --txt: #111827; 
             --accent: #2563eb; 
             --border: #e5e7eb; 
-            --secondary: #4b5563;
+            --nav-txt: #4b5563;
         }
         [data-theme="dark"] { 
             --bg: #000000; 
@@ -26,13 +26,13 @@
             --txt: #f9fafb; 
             --accent: #3b82f6; 
             --border: #1f2937; 
-            --secondary: #9ca3af;
+            --nav-txt: #9ca3af;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--txt); transition: 0.25s; min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* --- MyWeb Main Page Nav --- */
+        /* --- Updated MyWeb Nav Bar --- */
         nav { 
             display: flex; 
             justify-content: space-between; 
@@ -44,24 +44,42 @@
             top: 0; 
             z-index: 1000; 
         }
-        .nav-logo img { height: 32px; cursor: pointer; transition: transform 0.2s; }
-        .nav-logo img:hover { transform: scale(1.05); }
-        .theme-btn { background: none; border: none; cursor: pointer; font-size: 1.25rem; color: var(--txt); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .nav-left img { height: 32px; cursor: pointer; }
+        
+        .nav-right { display: flex; align-items: center; gap: 24px; }
+        .nav-link { 
+            text-decoration: none; 
+            color: var(--nav-txt); 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: var(--accent); }
+
+        .theme-btn { 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 1.2rem; 
+            color: var(--txt); 
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
 
         /* --- Converter UI --- */
-        .main-container { flex: 1; max-width: 650px; margin: 80px auto; padding: 0 24px; width: 100%; }
+        .main-container { flex: 1; max-width: 650px; margin: 60px auto; padding: 0 24px; width: 100%; }
         
-        .hero-section { text-align: center; margin-bottom: 40px; }
-        .hero-section h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.05em; margin-bottom: 12px; }
-        .hero-section p { color: var(--secondary); font-size: 1.1rem; }
+        .hero-section { text-align: center; margin-bottom: 32px; }
+        .hero-section h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.05em; margin-bottom: 8px; }
+        .hero-section p { color: var(--nav-txt); font-size: 1rem; }
 
         .app-card { 
             background: var(--card); 
             border: 1px solid var(--border); 
             border-radius: 24px; 
             padding: 40px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
-            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
         }
         
         .drop-area { 
@@ -71,16 +89,14 @@
             text-align: center; 
             cursor: pointer; 
             background: var(--bg); 
-            transition: all 0.2s ease;
+            transition: 0.2s;
             position: relative;
         }
-        .drop-area:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
-        .drop-area h3 { font-weight: 700; font-size: 1.1rem; }
-        
+        .drop-area:hover { border-color: var(--accent); }
         #fileInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 10; }
 
         .config-box { margin-top: 32px; display: none; }
-        .field-label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em; }
+        .field-label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.1em; }
         
         select { 
             width: 100%; 
@@ -89,9 +105,8 @@
             border: 1px solid var(--border); 
             background: var(--bg); 
             color: var(--txt); 
-            font-weight: 600; 
+            font-weight: 700; 
             margin-bottom: 24px;
-            appearance: none;
             outline: none;
             cursor: pointer;
         }
@@ -101,64 +116,67 @@
             padding: 18px; 
             border-radius: 12px; 
             font-weight: 800; 
-            font-size: 1rem;
             cursor: pointer; 
             border: none; 
             background: var(--accent); 
             color: white; 
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             transition: 0.2s;
         }
-        .btn-main:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-main:hover { opacity: 0.9; }
         
         .output-console { 
             background: #000; 
             color: #10b981; 
             padding: 20px; 
             border-radius: 12px; 
-            font-family: 'JetBrains Mono', monospace; 
-            font-size: 0.85rem; 
+            font-family: monospace; 
+            font-size: 0.8rem; 
             margin-top: 24px; 
             display: none; 
             border: 1px solid #111;
         }
 
-        .version-info { text-align: center; margin-top: 32px; font-size: 0.7rem; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.5; }
+        .version-info { text-align: center; margin-top: 40px; font-size: 0.65rem; font-weight: 800; color: var(--nav-txt); text-transform: uppercase; letter-spacing: 0.3em; opacity: 0.4; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-logo">
+    <div class="nav-left">
         <img id="logo" src="MYWEB2!.png" alt="MyWeb" onclick="location.reload()">
     </div>
-    <button id="theme-toggle" class="theme-btn">🌓</button>
+    
+    <div class="nav-right">
+        <a href="https://my-webhosting.github.io/Main/" class="nav-link">Home</a>
+        <a href="https://my-webhosting.github.io/Main/Files/JIMG" class="nav-link">JackImage Studio</a>
+        <button id="theme-toggle" class="theme-btn">🌓</button>
+    </div>
 </nav>
 
 <div class="main-container">
     <div class="hero-section">
         <h1>Ultimate Converter</h1>
-        <p>Polished file transformation for MyWeb.</p>
+        <p>Advanced media processing for the MyWeb suite.</p>
     </div>
 
     <div class="app-card">
         <div class="drop-area">
-            <h3 id="status-display">Click or Drag File</h3>
-            <p style="font-size: 0.8rem; color: var(--secondary); margin-top: 8px;">Supports Images, Video, Audio & Archives</p>
+            <h3 id="status-display" style="font-weight: 800;">Drop or Select File</h3>
+            <p style="font-size: 0.8rem; color: var(--nav-txt); margin-top: 6px;">Images • Video • Audio • ZIP</p>
             <input type="file" id="fileInput">
         </div>
 
         <div id="controls" class="config-box">
-            <label class="field-label">Target Format</label>
+            <label class="field-label">Export Format</label>
             <select id="format-select"></select>
-            <button id="convert-btn" class="btn-main">Convert Now</button>
+            <button id="convert-btn" class="btn-main">Start Conversion</button>
         </div>
 
         <div id="log-box" class="output-console"></div>
     </div>
     
-    <div class="version-info">Build v1.6.0 | Launch Ready</div>
+    <div class="version-info">Build v1.6.1 | MyWeb Ecosystem</div>
 </div>
 
 <script>
@@ -188,10 +206,9 @@
         activeFile = e.target.files[0];
         if(!activeFile) return;
 
-        const nameParts = activeFile.name.split('.');
-        const ext = nameParts.length > 1 ? nameParts.pop().toLowerCase() : '';
-        
+        const ext = activeFile.name.split('.').pop().toLowerCase();
         let type = 'other';
+        
         if (["png", "jpg", "jpeg", "webp", "bmp", "gif"].includes(ext)) type = 'image';
         else if (["mp4", "webm", "avi", "mov", "mkv"].includes(ext)) type = 'video';
         else if (["mp3", "wav", "ogg", "flac", "m4a"].includes(ext)) type = 'audio';
@@ -202,7 +219,7 @@
         const sel = document.getElementById('format-select');
         sel.innerHTML = FORMATS[type]
             .filter(f => f !== ext)
-            .map(f => `<option value="${f}">${f.toUpperCase()} ${f==='zip' ? '(Archive)' : ''}</option>`)
+            .map(f => `<option value="${f}">${f.toUpperCase()} ${f==='zip' ? '(ARCHIVE)' : ''}</option>`)
             .join('');
     };
 
@@ -210,21 +227,19 @@
         const target = document.getElementById('format-select').value;
         const log = document.getElementById('log-box');
         log.style.display = 'block';
-        log.innerHTML = `> INITIALIZING...`;
+        log.innerHTML = `> MOUNTING MODULES...`;
 
         try {
-            // 1. ZIP ARCHIVE LOGIC
             if (target === 'zip') {
-                log.innerHTML += `<br>> ARCHIVING DATA...`;
+                log.innerHTML += `<br>> PACKAGING ZIP...`;
                 const zip = new JSZip();
                 zip.file(activeFile.name, activeFile);
                 const content = await zip.generateAsync({type:"blob"});
                 download(content, `${activeFile.name}.zip`);
-                log.innerHTML += `<br>> ARCHIVE CREATED.`;
+                log.innerHTML += `<br>> DONE.`;
             } 
-            // 2. NATIVE IMAGE LOGIC
             else if (FORMATS.image.includes(target)) {
-                log.innerHTML += `<br>> PROCESSING IMAGE...`;
+                log.innerHTML += `<br>> RENDERING IMAGE...`;
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
@@ -232,22 +247,21 @@
                     canvas.height = img.height;
                     canvas.getContext('2d').drawImage(img, 0, 0);
                     canvas.toBlob((blob) => {
-                        download(blob, `converted.${target}`);
+                        download(blob, `export.${target}`);
                         log.innerHTML += `<br>> SUCCESS.`;
                     }, `image/${target === 'jpg' ? 'jpeg' : target}`);
                 };
                 img.src = URL.createObjectURL(activeFile);
             }
-            // 3. FFMPEG MEDIA LOGIC
             else {
-                log.innerHTML += `<br>> LOADING FFMPEG...`;
+                log.innerHTML += `<br>> BOOTING FFMPEG...`;
                 const { createFFmpeg, fetchFile } = FFmpeg;
                 const ffmpeg = createFFmpeg({ log: true });
                 await ffmpeg.load();
                 ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
                 await ffmpeg.run('-i', 'in', `out.${target}`);
                 const data = ffmpeg.FS('readFile', `out.${target}`);
-                download(new Blob([data.buffer]), `converted.${target}`);
+                download(new Blob([data.buffer]), `export.${target}`);
                 log.innerHTML += `<br>> EXPORT COMPLETE.`;
             }
         } catch (err) {
