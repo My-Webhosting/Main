@@ -8,6 +8,8 @@
     <script src="./coi-serviceworker.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    
     <style>
         :root { --bg: #ffffff; --card: #f8fafc; --txt: #000000; --accent: #2563eb; --border: #e2e8f0; }
         [data-theme="dark"] { --bg: #000000; --card: #0a0a0a; --txt: #ffffff; --accent: #3b82f6; --border: #1a1a1a; }
@@ -16,8 +18,7 @@
         body { background: var(--bg); color: var(--txt); transition: 0.2s; min-height: 100vh; }
 
         nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 8%; background: var(--bg); border-bottom: 1px solid var(--border); }
-        .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 1.3rem; }
-        .nav-brand img { height: 32px; }
+        .nav-brand img { height: 38px; cursor: pointer; }
 
         .wrapper { max-width: 600px; margin: 60px auto; padding: 0 20px; }
         .main-card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
@@ -37,7 +38,9 @@
 <body>
 
 <nav>
-    <div class="nav-brand"><img id="logo" src="MYWEB2!.png"> <span>MyWebHosting</span></div>
+    <div class="nav-brand">
+        <img id="logo" src="MYWEB2!.png" onclick="location.reload()">
+    </div>
     <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.6rem;">🌓</button>
 </nav>
 
@@ -57,10 +60,11 @@
 
         <div id="log-box" class="console"></div>
     </div>
-    <div class="version-tag">STABLE v1.5.6 | TRUE BLACK</div>
+    <div class="version-tag">STABLE v1.5.7 | TRUE BLACK CORE</div>
 </div>
 
 <script>
+    // --- UI LOGIC (Safe Block) ---
     const doc = document.documentElement;
     const logoImg = document.getElementById('logo');
     
@@ -71,22 +75,7 @@
         logoImg.src = (next === 'light') ? 'MYWEB!.png' : 'MYWEB2!.png';
     };
 
-    document.getElementById('fileInput').onchange = (e) => {
-        const file = e.target.files[0];
-        if(file) {
-            document.getElementById('status-text').innerText = file.name.toUpperCase();
-            document.getElementById('settings').style.display = 'block';
-            // Hand off to WASM engine
-            if(window.initFormats) window.initFormats(file);
-        }
-    };
-</script>
-
-<script type="module">
-    // Using Skypack for better 2026 ESM compatibility
-    import Magick from 'https://cdn.skypack.dev/@imagemagick/magick-wasm';
-    import { createFFmpeg, fetchFile } from 'https://cdn.skypack.dev/@ffmpeg/ffmpeg@0.11.6';
-
+    // --- FILE HANDLING & FORMAT SELECTION ---
     const library = {
         image: ["png", "jpg", "webp", "gif", "ico", "bmp"],
         video: ["mp4", "webm", "avi", "mov"],
@@ -95,13 +84,18 @@
 
     let activeFile = null;
 
-    window.initFormats = (file) => {
-        activeFile = file;
-        const ext = file.name.split('.').pop().toLowerCase();
+    document.getElementById('fileInput').onchange = (e) => {
+        activeFile = e.target.files[0];
+        if(!activeFile) return;
+
+        const ext = activeFile.name.split('.').pop().toLowerCase();
         let cat = 'image';
         
         if(["mp4", "webm", "avi", "mov"].includes(ext)) cat = 'video';
         else if(["mp3", "wav", "ogg", "flac"].includes(ext)) cat = 'audio';
+
+        document.getElementById('status-text').innerText = activeFile.name.toUpperCase();
+        document.getElementById('settings').style.display = 'block';
 
         const sel = document.getElementById('format-select');
         sel.innerHTML = library[cat]
@@ -110,36 +104,27 @@
             .join('');
     };
 
+    // --- CONVERSION LOGIC ---
     document.getElementById('convert-btn').onclick = async () => {
         const target = document.getElementById('format-select').value;
         const log = document.getElementById('log-box');
         log.style.display = 'block';
-        log.innerHTML = `> MOUNTING CORE...`;
+        log.innerHTML = `> MOUNTING ENGINES...`;
 
         try {
             if (library.image.includes(target)) {
-                log.innerHTML += `<br>> BOOTING MAGICK...`;
-                // Official Skypack initialization
-                await Magick.initializeImageMagick();
-                const bytes = new Uint8Array(await activeFile.arrayBuffer());
-                
-                Magick.ImageMagick.read(bytes, (img) => {
-                    img.write(data => {
-                        const b = new Blob([data]);
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(b);
-                        a.download = `myweb_conv.${target}`;
-                        a.click();
-                        log.innerHTML += `<br>> IMAGE READY`;
-                    }, Magick.MagickFormat[target.charAt(0).toUpperCase() + target.slice(1).replace('jpg', 'Jpeg')]);
-                });
+                log.innerHTML += `<br>> IMAGE RENDERING NOT SUPPORTED WITHOUT WASM...`;
+                // Note: Standard JS cannot easily convert images without a loaded WASM engine.
+                // We would need a working ImageMagick build here.
             } else {
                 log.innerHTML += `<br>> BOOTING FFmpeg...`;
+                const { createFFmpeg, fetchFile } = FFmpeg;
                 const ffmpeg = createFFmpeg({ log: true });
                 await ffmpeg.load();
                 ffmpeg.FS('writeFile', 'in', await fetchFile(activeFile));
                 await ffmpeg.run('-i', 'in', `out.${target}`);
                 const data = ffmpeg.FS('readFile', `out.${target}`);
+                
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(new Blob([data.buffer]));
                 a.download = `myweb_conv.${target}`;
