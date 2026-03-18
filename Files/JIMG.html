@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JackImage Studio Ultra-Pro | MyWebHosting</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--primary-text:#000;
+--accent-blue:#2563eb;
+--bg-color:#ffffff;
+--card-bg:#fcfcfc;
+--border:#eeeeee;
+--muted-text:#666;
+--hero-bg: radial-gradient(circle at center,#fafafa 0%,#ffffff 100%);
+}
+
+[data-theme="dark"]{
+--primary-text:#ffffff;
+--accent-blue:#3b82f6;
+--bg-color:#0a0a0a;
+--card-bg:#16161a;
+--border:#27272a;
+--muted-text:#a1a1aa;
+--hero-bg: radial-gradient(circle at center,#111111 0%,#0a0a0a 100%);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+transition:background-color .3s,color .3s,border-color .3s;
+}
+
+body{
+background:var(--bg-color);
+color:var(--primary-text);
+}
+
+/* NAV */
+
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:1rem 8%;
+border-bottom:1px solid var(--border);
+position:sticky;
+top:0;
+background:var(--bg-color);
+z-index:1000;
+}
+
+.logo-container{
+display:flex;
+align-items:center;
+gap:12px;
+text-decoration:none;
+color:var(--primary-text);
+}
+
+.logo-img{
+height:40px;
+}
+
+.logo-text{
+font-weight:800;
+font-size:1.4rem;
+}
+
+.nav-links{
+display:flex;
+align-items:center;
+}
+
+.nav-links a{
+margin-left:2rem;
+text-decoration:none;
+color:var(--muted-text);
+}
+
+#theme-toggle{
+background:var(--border);
+border:none;
+padding:8px 12px;
+border-radius:8px;
+cursor:pointer;
+margin-left:2rem;
+}
+
+/* HERO */
+
+.hero{
+padding:70px 8% 40px;
+text-align:center;
+background:var(--hero-bg);
+}
+
+.hero h1{
+font-size:3rem;
+font-weight:800;
+}
+
+.hero p{
+margin-top:10px;
+color:var(--muted-text);
+}
+
+/* CENTERED TOOL AREA */
+
+.tool-wrapper{
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:60vh;
+padding:60px 8%;
+}
+
+.tool-card{
+background:var(--card-bg);
+border:1px solid var(--border);
+border-radius:14px;
+padding:50px;
+max-width:850px;
+width:100%;
+margin:auto;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+.tool-card h2{
+margin-bottom:20px;
+}
+
+/* UPLOAD */
+
+.upload-area{
+border:2px dashed var(--border);
+padding:40px;
+border-radius:10px;
+cursor:pointer;
+margin-bottom:30px;
+}
+
+.upload-area:hover{
+border-color:var(--accent-blue);
+}
+
+input[type=file]{
+display:none;
+}
+
+canvas{
+max-width:100%;
+margin-top:20px;
+border-radius:8px;
+border:1px solid var(--border);
+}
+
+/* BUTTONS */
+
+.controls{
+margin-top:20px;
+}
+
+button{
+padding:12px 26px;
+border:none;
+border-radius:6px;
+font-weight:600;
+cursor:pointer;
+background:var(--primary-text);
+color:var(--bg-color);
+margin:6px;
+}
+
+button:hover{
+opacity:.85;
+}
+
+/* METADATA */
+
+.meta-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin-top:30px;
+max-width:600px;
+margin-left:auto;
+margin-right:auto;
+}
+
+.meta-grid input,
+.meta-grid textarea{
+width:100%;
+padding:10px;
+border:1px solid var(--border);
+border-radius:6px;
+background:var(--bg-color);
+color:var(--primary-text);
+}
+
+.meta-grid textarea{
+grid-column:span 2;
+resize:vertical;
+}
+
+/* FOOTER */
+
+footer{
+padding:60px 8%;
+border-top:1px solid var(--border);
+color:var(--muted-text);
+font-size:.9rem;
+margin-top:60px;
+}
+
+.footer-inner{
+display:flex;
+justify-content:space-between;
+flex-wrap:wrap;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav>
+
+<a href="#" class="logo-container">
+<img src="MYWEB!.png" id="main-logo" class="logo-img">
+<span class="logo-text">MyWebHosting</span>
+</a>
+
+<div class="nav-links">
+<a href="#">Github</a>
+<a href="#">Support</a>
+<button id="theme-toggle">🌓</button>
+</div>
+
+</nav>
+
+<header class="hero">
+
+<h1>JackImage Studio Ultra-Pro</h1>
+<p>Advanced browser image processing with metadata and JackImage format.</p>
+
+</header>
+
+<section class="tool-wrapper">
+
+<div class="tool-card">
+
+<h2>Image Processor</h2>
+
+<label class="upload-area" id="dropArea">
+Drag & Drop Image or Click to Upload
+<input type="file" id="upload" accept="image/*">
+</label>
+
+<canvas id="canvas"></canvas>
+
+<div class="controls">
+<button onclick="exportPNG()">Export PNG</button>
+<button onclick="exportJPEG()">Export JPEG</button>
+<button onclick="exportJack()">Export JackImage</button>
+</div>
+
+<h2 style="margin-top:40px;">Metadata</h2>
+
+<div class="meta-grid">
+<input id="metaAuthor" placeholder="Author">
+<input id="metaCopyright" placeholder="Copyright">
+<textarea id="metaDescription" placeholder="Description"></textarea>
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+<div class="footer-inner">
+<p>© 2026 MyWebHosting. Free tools for everyone.</p>
+<p>Powered by Bazzite & Git LFS</p>
+</div>
+
+</footer>
+
+<script>
+
+/* THEME */
+
+const html=document.documentElement;
+const logo=document.getElementById("main-logo");
+
+function updateLogo(theme){
+logo.src = theme==="dark" ? "MYWEB2!.png" : "MYWEB!.png";
+}
+
+const savedTheme=localStorage.getItem("theme")||"light";
+html.setAttribute("data-theme",savedTheme);
+updateLogo(savedTheme);
+
+document.getElementById("theme-toggle").onclick=()=>{
+const current=html.getAttribute("data-theme");
+const newTheme=current==="light"?"dark":"light";
+html.setAttribute("data-theme",newTheme);
+localStorage.setItem("theme",newTheme);
+updateLogo(newTheme);
+};
+
+/* IMAGE SYSTEM */
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+const upload=document.getElementById("upload");
+const dropArea=document.getElementById("dropArea");
+
+let img=new Image();
+
+function loadFile(file){
+
+const url=URL.createObjectURL(file);
+
+img.onload=()=>{
+canvas.width=img.width;
+canvas.height=img.height;
+ctx.drawImage(img,0,0);
+};
+
+img.src=url;
+
+}
+
+upload.onchange=e=>loadFile(e.target.files[0]);
+
+dropArea.onclick=()=>upload.click();
+
+dropArea.ondragover=e=>{
+e.preventDefault();
+};
+
+dropArea.ondrop=e=>{
+e.preventDefault();
+loadFile(e.dataTransfer.files[0]);
+};
+
+/* DOWNLOAD */
+
+function download(blob,name){
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download=name;
+a.click();
+}
+
+/* EXPORTS */
+
+function exportPNG(){
+canvas.toBlob(blob=>{
+download(blob,"image.png");
+},"image/png");
+}
+
+function exportJPEG(){
+canvas.toBlob(blob=>{
+download(blob,"image.jpg");
+},"image/jpeg",0.95);
+}
+
+function exportJack(){
+
+const metadata={
+author:document.getElementById("metaAuthor").value,
+copyright:document.getElementById("metaCopyright").value,
+description:document.getElementById("metaDescription").value
+};
+
+const data=canvas.toDataURL("image/png");
+
+const fileData={
+format:"jackimage",
+version:1,
+metadata:metadata,
+image:data
+};
+
+const blob=new Blob([JSON.stringify(fileData,null,2)],{type:"application/json"});
+
+download(blob,"image.jackimage");
+
+}
+
+</script>
+
+</body>
+</html>
