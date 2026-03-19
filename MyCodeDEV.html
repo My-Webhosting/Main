@@ -2,38 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MyCode | Ironclad Font Loader</title>
+    <title>MyCode | Stable GitHub Build</title>
     <style>
         :root { --bg: #000; --panel: #111; --accent: #58cc02; --text: #fff; --border: #333; --code: #00ff41; }
-        * { box-sizing: border-box; font-family: 'Consolas', 'Monaco', monospace; }
+        * { box-sizing: border-box; font-family: 'Consolas', monospace; }
         body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         .toolbar { height: 50px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; font-size: 11px; color: #666; }
         main { display: flex; flex: 1; overflow: hidden; }
-        
         #editor { flex: 1; background: transparent; color: var(--code); padding: 25px; font-size: 16px; border: none; outline: none; resize: none; border-right: 1px solid var(--border); line-height: 1.6; }
-        
-        #preview-side { flex: 1; background: #fff; color: #000; padding: 40px; overflow-y: auto; }
-        
-        /* The Magic Font Container */
-        #font-style-tag { display: none; }
+        #preview { flex: 1; background: #fff; color: #000; padding: 40px; overflow-y: auto; }
     </style>
-    <style id="font-style-tag"></style>
+    <style id="font-load-area"></style>
 </head>
 <body>
 
-    <div class="toolbar">MYCODE ENGINE v10.6 // CROSTINI_COMPAT_MODE // Bypassing File-System Security</div>
+    <div class="toolbar">MYCODE ENGINE v10.7 // GITHUB_PAGES_STABLE // FONT_FIX_FINAL</div>
 
     <main>
         <textarea id="editor" spellcheck="false" oninput="compile()"></textarea>
-        <div id="preview-side" id="output"></div>
+        <div id="preview"></div>
     </main>
 
     <script>
         function compile() {
             const code = document.getElementById('editor').value;
-            const output = document.getElementById('preview-side');
-            const fontContainer = document.getElementById('font-style-tag');
+            const preview = document.getElementById('preview');
+            const fontArea = document.getElementById('font-load-area');
             
             let html = "";
             let cssImports = "";
@@ -42,31 +36,33 @@
                 const t = line.trim();
                 if (!t || t.startsWith('#')) return;
 
-                // Split by the LAST colon so the URL stays whole
-                const parts = t.split(':');
-                const content = parts.pop().trim();
-                const meta = parts.join(':');
+                // 1. Split Content from Meta (The Last Colon Method)
+                const lastColon = t.lastIndexOf(':');
+                if (lastColon === -1) return;
+                const meta = t.substring(0, lastColon);
+                const content = t.substring(lastColon + 1).trim();
 
                 let style = "";
                 let fontName = "sans-serif";
 
+                // 2. Extract Styles
                 if (meta.includes('!')) {
-                    const params = meta.split('!')[1].split(',');
-                    params.forEach(p => {
-                        const [key, val] = p.split('=');
-                        if (key === 'font') {
-                            // Inject the Google Font CSS
-                            cssImports += `@import url('${val}');\n`;
-                            
-                            // Extract Family Name carefully
-                            const nameMatch = val.match(/family=([^&:]+)/);
-                            if (nameMatch) {
-                                fontName = `'${nameMatch[1].replace(/\+/g, ' ')}'`;
-                            }
-                        }
-                        if (key === 'color') style += `color:${val};`;
-                        if (key === 'size') style += `font-size:${val}px;`;
-                    });
+                    const styleString = meta.split('!')[1];
+                    
+                    // FONT EXTRACTION (Regex optimized for Black Ops One)
+                    const fontMatch = styleString.match(/font=([^,!]+)/);
+                    if (fontMatch) {
+                        const fontUrl = fontMatch[1].trim();
+                        cssImports += `@import url('${fontUrl}');\n`;
+                        
+                        // Extract family name from URL
+                        let name = fontUrl.split('family=')[1]?.split('&')[0]?.split(':')[0]?.replace(/\+/g, ' ');
+                        if (name) fontName = `'${name}'`;
+                    }
+
+                    // COLOR EXTRACTION
+                    const colorMatch = styleString.match(/color=([^,!]+)/);
+                    if (colorMatch) style += `color:${colorMatch[1]};`;
                 }
 
                 style += `font-family: ${fontName}, sans-serif;`;
@@ -75,12 +71,11 @@
                 if (t.startsWith('@text')) html += `<p style="${style}">${content}</p>`;
             });
 
-            // Update the CSS and the HTML
-            fontContainer.innerHTML = cssImports;
-            output.innerHTML = html;
+            fontArea.innerHTML = cssImports;
+            preview.innerHTML = html;
         }
 
-        // Default Load
+        // Initialize with a CLEAN link
         document.getElementById('editor').value = "@title!font=https://fonts.googleapis.com/css2?family=Black+Ops+One:Hello Gemini";
         compile();
     </script>
