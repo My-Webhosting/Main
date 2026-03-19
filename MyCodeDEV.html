@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MyCode | Ironclad Font Loader</title>
+    <style>
+        :root { --bg: #000; --panel: #111; --accent: #58cc02; --text: #fff; --border: #333; --code: #00ff41; }
+        * { box-sizing: border-box; font-family: 'Consolas', 'Monaco', monospace; }
+        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .toolbar { height: 50px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; font-size: 11px; color: #666; }
+        main { display: flex; flex: 1; overflow: hidden; }
+        
+        #editor { flex: 1; background: transparent; color: var(--code); padding: 25px; font-size: 16px; border: none; outline: none; resize: none; border-right: 1px solid var(--border); line-height: 1.6; }
+        
+        #preview-side { flex: 1; background: #fff; color: #000; padding: 40px; overflow-y: auto; }
+        
+        /* The Magic Font Container */
+        #font-style-tag { display: none; }
+    </style>
+    <style id="font-style-tag"></style>
+</head>
+<body>
+
+    <div class="toolbar">MYCODE ENGINE v10.6 // CROSTINI_COMPAT_MODE // Bypassing File-System Security</div>
+
+    <main>
+        <textarea id="editor" spellcheck="false" oninput="compile()"></textarea>
+        <div id="preview-side" id="output"></div>
+    </main>
+
+    <script>
+        function compile() {
+            const code = document.getElementById('editor').value;
+            const output = document.getElementById('preview-side');
+            const fontContainer = document.getElementById('font-style-tag');
+            
+            let html = "";
+            let cssImports = "";
+
+            code.split('\n').forEach(line => {
+                const t = line.trim();
+                if (!t || t.startsWith('#')) return;
+
+                // Split by the LAST colon so the URL stays whole
+                const parts = t.split(':');
+                const content = parts.pop().trim();
+                const meta = parts.join(':');
+
+                let style = "";
+                let fontName = "sans-serif";
+
+                if (meta.includes('!')) {
+                    const params = meta.split('!')[1].split(',');
+                    params.forEach(p => {
+                        const [key, val] = p.split('=');
+                        if (key === 'font') {
+                            // Inject the Google Font CSS
+                            cssImports += `@import url('${val}');\n`;
+                            
+                            // Extract Family Name carefully
+                            const nameMatch = val.match(/family=([^&:]+)/);
+                            if (nameMatch) {
+                                fontName = `'${nameMatch[1].replace(/\+/g, ' ')}'`;
+                            }
+                        }
+                        if (key === 'color') style += `color:${val};`;
+                        if (key === 'size') style += `font-size:${val}px;`;
+                    });
+                }
+
+                style += `font-family: ${fontName}, sans-serif;`;
+
+                if (t.startsWith('@title')) html += `<h1 style="${style}">${content}</h1>`;
+                if (t.startsWith('@text')) html += `<p style="${style}">${content}</p>`;
+            });
+
+            // Update the CSS and the HTML
+            fontContainer.innerHTML = cssImports;
+            output.innerHTML = html;
+        }
+
+        // Default Load
+        document.getElementById('editor').value = "@title!font=https://fonts.googleapis.com/css2?family=Black+Ops+One:Hello Gemini";
+        compile();
+    </script>
+</body>
+</html>
