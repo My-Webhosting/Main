@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MyCode | Plain Viewer</title>
+    <style>
+        :root { 
+            --bg: #000000; --panel: #0a0a0a; --accent: #58cc02; 
+            --text: #ffffff; --border: #1a1a1a; --code: #00ff41;
+        }
+        * { box-sizing: border-box; font-family: 'Consolas', 'Monaco', monospace; }
+        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Toolbar */
+        .toolbar { 
+            height: 50px; background: var(--panel); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+        .status { font-size: 12px; color: #666; font-family: sans-serif; }
+        .btn-export { background: var(--accent); color: white; border: none; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: sans-serif; }
+
+        /* Workspace */
+        main { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Editor Side */
+        #editor-side { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+        #editor { 
+            flex: 1; background: transparent; color: var(--code); padding: 25px; 
+            font-size: 16px; border: none; outline: none; resize: none; line-height: 1.6;
+        }
+
+        /* Preview Side */
+        #preview-side { flex: 1; background: #ffffff; display: flex; flex-direction: column; }
+        .preview-label { background: #f0f0f0; color: #999; padding: 5px 15px; font-size: 10px; font-family: sans-serif; font-weight: bold; }
+        #render-target { flex: 1; padding: 40px; overflow-y: auto; color: #000; font-family: sans-serif; }
+
+        /* Rendered Elements CSS */
+        #render-target h1 { font-size: 2.5em; margin: 0 0 15px 0; }
+        #render-target p { font-size: 1.1em; line-height: 1.5; color: #333; }
+        #render-target button { padding: 12px 24px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        #render-target input { display: block; width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <div class="status">MYCODE ENGINE v8.0 // PLAIN_VIEWER.EXE</div>
+        <button class="btn-export" onclick="exportFile()">EXPORT HTML</button>
+    </div>
+
+    <main>
+        <section id="editor-side">
+            <textarea id="editor" spellcheck="false" oninput="compile()" placeholder="# Welcome to the Plain Viewer&#10;@title: Hello World&#10;@text: Start typing to see the magic..."></textarea>
+        </section>
+
+        <section id="preview-side">
+            <div class="preview-label">LIVE BROWSER PREVIEW</div>
+            <div id="render-target"></div>
+        </section>
+    </main>
+
+    <script>
+        function compile() {
+            const code = document.getElementById('editor').value;
+            const target = document.getElementById('render-target');
+            let html = "";
+            
+            code.split('\n').forEach(line => {
+                const t = line.trim();
+                if (!t || t.startsWith('#')) return;
+
+                // --- ADVANCED COMPILER LOGIC ---
+                
+                // 1. Check for Styles (!)
+                const styleMatch = t.match(/!([^:]+):/);
+                let css = "";
+                if (styleMatch) {
+                    styleMatch[1].split(',').forEach(s => {
+                        const [key, val] = s.split('=');
+                        if (key === 'color') css += `color:${val};`;
+                        if (key === 'highlight') css += `background-color:${val};`;
+                        if (key === 'align') css += `text-align:${val};`;
+                        if (key === 'size') css += `font-size:${val}px;`;
+                    });
+                }
+
+                // 2. Extract Content
+                const content = t.substring(t.indexOf(':') + 1).trim();
+
+                // 3. Direct Alert Logic
+                if (t.startsWith('@button:alert=')) {
+                    const msg = t.match(/alert=['"](.+?)['"]/)?.[1];
+                    const label = t.split('":')[1] || t.split("':")[1] || "Button";
+                    html += `<button onclick="alert('${msg}')" style="background:#58cc02; color:white; ${css}">${label}</button>`;
+                    return;
+                }
+
+                // 4. Standard Tags
+                if (t.startsWith('@title')) html += `<h1 style="${css}">${content}</h1>`;
+                if (t.startsWith('@text')) html += `<p style="${css}">${content}</p>`;
+                if (t.startsWith('@input')) html += `<input type="text" placeholder="${content}">`;
+                if (t.startsWith('@button')) html += `<button style="background:#58cc02; color:white; ${css}">${content}</button>`;
+                if (t.startsWith('@divider')) html += `<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">`;
+            });
+
+            target.innerHTML = html;
+        }
+
+        function exportFile() {
+            const code = document.getElementById('render-target').innerHTML;
+            const template = `<!DOCTYPE html><html><head><style>body{padding:50px;font-family:sans-serif;}h1{font-size:3em;}button{padding:10px 20px;background:#58cc02;color:white;border:none;border-radius:5px;cursor:pointer;}</style></head><body>${code}</body></html>`;
+            const blob = new Blob([template], {type: 'text/html'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'my-site.html';
+            a.click();
+        }
+
+        // Run on start
+        compile();
+    </script>
+</body>
+</html>
