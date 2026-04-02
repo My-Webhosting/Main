@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyWeb | Access Gateway</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
+    <style>
+        /* Modern Dark Theme Base */
+        :root {
+            --bg: #050505;
+            --card: #111111;
+            --accent: #ffffff;
+            --text-dim: #888888;
+            --error: #ff4444;
+            --success: #00ff88;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .auth-card {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid #222;
+            width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            transition: transform 0.3s ease;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            margin-bottom: 8px;
+        }
+
+        .logo span {
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: #222;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+        }
+
+        button:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toggle-text {
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .toggle-text b {
+            color: #fff;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 13px;
+            min-height: 18px;
+            font-weight: 500;
+        }
+
+        /* Smooth fade for elements */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <div class="logo">MyWeb<span>Hosting</span></div>
+    <div id="form-title" class="subtitle">Secure Login</div>
+    
+    <div id="auth-form">
+        <input type="text" id="name-field" placeholder="Full Name" class="hidden">
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="pass" placeholder="Password">
+        
+        <button id="main-btn" onclick="handleAuth()">CONTINUE</button>
+    </div>
+    
+    <div class="toggle-text" id="toggle-container">
+        Don't have an account? <b onclick="toggleMode()">Sign Up</b>
+    </div>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+    // Initialize Appwrite
+    const { Client, Account, Databases, ID } = Appwrite;
+    const client = new Client()
+        .setEndpoint('https://nyc.cloud.appwrite.io/v1') 
+        .setProject('69cdb316003b87006984'); 
+
+    const account = new Account(client);
+    const databases = new Databases(client);
+
+    let isLogin = true;
+
+    // 1. Session Check: If already logged in, skip this page
+    async function checkExistingSession() {
+        try {
+            await account.get();
+            window.location.href = "dashboard.html";
+        } catch (err) {
+            // No session found, user stays on login page
+            console.log("No active session found.");
+        }
+    }
+    checkExistingSession();
+
+    // 2. UI Switcher
+    function toggleMode() {
+        isLogin = !isLogin;
+        const title = document.getElementById('form-title');
+        const nameField = document.getElementById('name-field');
+        const toggleText = document.getElementById('toggle-container');
+        
+        if (isLogin) {
+            title.innerText = "Secure Login";
+            nameField.classList.add('hidden');
+            toggleText.innerHTML = `Don't have an account? <b onclick="toggleMode()">Sign Up</b>`;
+        } else {
+            title.innerText = "Create Account";
+            nameField.classList.remove('hidden');
+            toggleText.innerHTML = `Already a member? <b onclick="toggleMode()">Login</b>`;
+        }
+    }
+
+    // 3. The Logic Engine
+    async function handleAuth() {
+        const btn = document.getElementById('main-btn');
+        const status = document.getElementById('status');
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const name = document.getElementById('name-field').value;
+
+        // Basic Validation
+        if (!email || !pass || (!isLogin && !name)) {
+            status.innerText = "Please fill in all fields.";
+            status.style.color = "var(--error)";
+            return;
+        }
+
+        btn.disabled = true;
+        status.innerText = "Connecting to MyWeb Cloud...";
+        status.style.color = "var(--text-dim)";
+
+        try {
+            if (isLogin) {
+                // LOGIN
+                await account.createEmailPasswordSession(email, pass);
+                status.innerText = "Access Granted. Redirecting...";
+                status.style.color = "var(--success)";
+            } else {
+                // SIGN UP
+                const userId = ID.unique();
+                await account.create(userId, email, pass, name);
+                
+                // Auto-login after signup
+                await account.createEmailPasswordSession(email, pass);
+                
+                status.innerText = "Account Created. Initializing User Stats...";
+                
+                // Create the database entry for Gems/Pro status
+                await databases.createDocument(
+                    'myweb_db', 
+                    'user_stats', 
+                    ID.unique(), 
+                    {
+                        "username": name,
+                        "gems": 50,
+                        "is_pro": false,
+                        "last_claim": "0"
+                    }
+                );
+                
+                status.innerText = "Profile Ready! Welcome to MyWeb.";
+                status.style.color = "var(--success)";
+            }
+
+            // Small delay for the user to see the success message
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 1500);
+
+        } catch (err) {
+            btn.disabled = false;
+            status.innerText = "Error: " + err.message;
+            status.style.color = "var(--error)";
+            console.error(err);
+        }
+    }
+</script>
+
+</body>
+</html>
