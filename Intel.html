@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyWeb | Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
+    <style>
+        :root { --bg: #ffffff; --sidebar: #f4f4f4; --card: #ffffff; --text: #1a1a1a; --border: #ddd; }
+        [data-theme="dark"] { --bg: #050505; --sidebar: #0a0a0a; --card: #111; --text: #ffffff; --border: #222; }
+        
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; transition: 0.3s; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 30px; display: flex; flex-direction: column; }
+        .logo-img { width: 140px; margin-bottom: 40px; }
+        
+        .main { flex: 1; padding: 40px; max-width: 1100px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .stat-card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid var(--border); transition: 0.3s; }
+        
+        .btn { background: var(--text); color: var(--bg); border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        textarea { width: 100%; height: 100px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 12px; margin-top: 15px; box-sizing: border-box; resize: none; }
+        .nav-link { padding: 10px; color: var(--text); text-decoration: none; display: block; margin-bottom: 5px; opacity: 0.7; }
+        .nav-link:hover { opacity: 1; }
+    </style>
+</head>
+<body data-theme="dark">
+
+<div class="sidebar">
+    <img id="logo" src="MYWEB2!.png" class="logo-img">
+    <div style="flex:1">
+        <a href="#" class="nav-link" style="font-weight:bold; opacity:1;">Overview</a>
+        <a href="#" class="nav-link">My Sites</a>
+        <a href="#" class="nav-link">Billing</a>
+    </div>
+    <button class="btn" onclick="toggleTheme()" style="background:var(--border); color:var(--text);">🌓 Switch Theme</button>
+    <button onclick="logout()" style="background:transparent; color:#ff4444; border:none; margin-top:15px; cursor:pointer;">Sign Out</button>
+</div>
+
+<div class="main">
+    <h1 id="welcome-title" style="font-size: 36px; margin-bottom: 10px;">...</h1>
+    <p id="user-sub" style="color:gray; margin-bottom: 40px;"></p>
+
+    <div class="stat-grid">
+        <!-- Gems Card -->
+        <div class="stat-card">
+            <div style="font-size:12px; color:gray; letter-spacing:1px; font-weight:700;">CURRENT BALANCE</div>
+            <div id="gem-count" style="font-size:48px; font-weight:900; margin:10px 0;">0</div>
+            <div style="color:var(--text); font-size:14px;">💎 Gems Available</div>
+        </div>
+
+        <!-- Daily Bonus Card -->
+        <div class="stat-card">
+            <div style="font-size:12px; color:gray; letter-spacing:1px; font-weight:700;">DAILY REWARD</div>
+            <div id="reward-status" style="font-size:20px; margin:20px 0; font-weight:600;">Checking...</div>
+            <button id="claim-btn" class="btn" onclick="claimDaily()" style="display:none;">🎁 Claim 10 Gems</button>
+        </div>
+
+        <!-- Idea Incubator Card -->
+        <div class="stat-card" style="grid-column: 1 / -1;">
+            <div style="font-size:12px; color:gray; letter-spacing:1px; font-weight:700;">IDEA INCUBATOR</div>
+            <p style="margin-top:10px; font-size:14px; opacity:0.8;">What should we build next? We turn your ideas into code.</p>
+            <textarea id="idea-text" placeholder="I want to be able to host my own Python bots..."></textarea>
+            <button id="idea-btn" class="btn" onclick="sendIdea()" style="width:auto; padding: 12px 40px;">Launch Idea 🚀</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { Client, Account, Databases, Query, ID } = Appwrite;
+    const client = new Client().setEndpoint('https://nyc.cloud.appwrite.io/v1').setProject('69cdb316003b87006984');
+    const account = new Account(client);
+    const databases = new Databases(client);
+
+    let docId = null;
+    let userName = "";
+
+    // 1. Theme Engine
+    function toggleTheme() {
+        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', theme);
+        document.getElementById('logo').src = theme === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
+        localStorage.setItem('myweb_theme', theme);
+    }
+    if(localStorage.getItem('myweb_theme')) {
+        const saved = localStorage.getItem('myweb_theme');
+        document.body.setAttribute('data-theme', saved);
+        document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
+    }
+
+    // 2. Data Loader
+    async function init() {
+        try {
+            const user = await account.get();
+            userName = user.name;
+            document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
+            document.getElementById('user-sub').innerText = user.email;
+
+            const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
+            if (res.documents.length > 0) {
+                const data = res.documents[0];
+                docId = data.$id;
+                document.getElementById('gem-count').innerText = data.gems;
+                
+                // Reward Timer Logic
+                const now = Date.now();
+                const last = parseInt(data.last_claim || 0);
+                if (now - last > 86400000) {
+                    document.getElementById('reward-status').innerText = "Ready to Claim!";
+                    document.getElementById('claim-btn').style.display = "block";
+                } else {
+                    const hours = Math.ceil((86400000 - (now - last)) / 3600000);
+                    document.getElementById('reward-status').innerText = `Next reward in ${hours}h`;
+                }
+            }
+        } catch (e) { window.location.href = "login.html"; }
+    }
+
+    // 3. Daily Claim
+    async function claimDaily() {
+        const currentGems = parseInt(document.getElementById('gem-count').innerText);
+        await databases.updateDocument('myweb_db', 'user_stats', docId, {
+            gems: currentGems + 10,
+            last_claim: Date.now().toString()
+        });
+        location.reload();
+    }
+
+    // 4. Idea Submission
+    async function sendIdea() {
+        const idea = document.getElementById('idea-text').value;
+        const btn = document.getElementById('idea-btn');
+        if(!idea) return alert("Vision cannot be empty!");
+
+        btn.disabled = true;
+        btn.innerText = "Transmitting...";
+
+        try {
+            await databases.createDocument('myweb_db', 'user_ideas', ID.unique(), {
+                "content": idea,
+                "username": userName
+            });
+            alert("Idea Received! We're on it.");
+            document.getElementById('idea-text').value = "";
+        } catch (e) { alert(e.message); }
+        btn.disabled = false;
+        btn.innerText = "Launch Idea 🚀";
+    }
+
+    async function logout() { await account.deleteSession('current'); window.location.href = "login.html"; }
+    init();
+</script>
+</body>
+</html>
