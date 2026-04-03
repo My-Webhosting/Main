@@ -1,17 +1,15 @@
 {
   "short_name": "MyWeb",
-  "name": "MyWeb Hosting Platform",
-"icons": [
+  "name": "MyWebHosting APP",
+  "icons": [
     {
       "src": "img/APP.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
-]
-
   ],
-  "start_url": "/login.html",
+  "start_url": "./login.html",
   "display": "standalone",
   "theme_color": "#050505",
   "background_color": "#050505"
