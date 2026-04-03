@@ -1,0 +1,15 @@
+{
+  "short_name": "MyWeb",
+  "name": "MyWebHosting",
+  "icons": [
+    {
+      "src": "MYWEB2!.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/login.html",
+  "display": "standalone",
+  "theme_color": "#050505",
+  "background_color": "#050505"
+}
