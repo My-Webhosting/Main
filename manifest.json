@@ -1,11 +1,18 @@
 {
   "short_name": "MyWeb",
-  "name": "MyWebHosting",
+  "name": "MyWeb Hosting Platform",
   "icons": [
     {
-      "src": "MYWEB2!.png",
+      "src": "/img/APP.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/APP.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "start_url": "/login.html",
