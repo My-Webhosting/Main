@@ -1,19 +1,20 @@
 {
   "short_name": "MyWeb",
   "name": "MyWeb Hosting Platform",
-  "icons": [
+"icons": [
     {
-      "src": "/img/APP.png",
+      "src": "img/APP.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/APP.png",
+      "src": "img/APP.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable any"
     }
+
   ],
   "start_url": "/login.html",
   "display": "standalone",
