@@ -76,9 +76,10 @@
     </div>
 </div>
 
+<!-- Main Dashboard Script -->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
 <script>
-    // Make sure these are only declared ONCE here
+    // 1. Initialize Appwrite - Only declared ONCE
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
     
     const client = new Client()
@@ -92,21 +93,24 @@
     let docId = null;
     let userName = "";
 
-    // 1. Theme Engine
+    // 2. Theme Engine
     function toggleTheme() {
         const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.body.setAttribute('data-theme', theme);
-        document.getElementById('logo').src = theme === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
+        const logo = document.getElementById('logo');
+        if (logo) logo.src = theme === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
         localStorage.setItem('myweb_theme', theme);
     }
 
+    // Apply saved theme on load
     if(localStorage.getItem('myweb_theme')) {
         const saved = localStorage.getItem('myweb_theme');
         document.body.setAttribute('data-theme', saved);
-        document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
+        const logo = document.getElementById('logo');
+        if (logo) logo.src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // 2. Main Init
+    // 3. Main Logic Initialization
     async function init() {
         try {
             const user = await account.get();
@@ -114,9 +118,10 @@
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
 
-            // Start Push
-            initPush().catch(e => console.warn("Push Error:", e));
+            // Start Push Notification Registration
+            initPush().catch(e => console.warn("Push Setup Error:", e));
 
+            // Load Gem Data and Reward Status
             const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
             if (res.documents.length > 0) {
                 const data = res.documents[0];
@@ -134,12 +139,12 @@
                 }
             }
         } catch (e) { 
-            console.error(e);
+            console.error("Auth Error:", e);
             window.location.href = "login.html"; 
         }
     }
 
-    // 3. Stable Push Logic
+    // 4. Push Notification Logic (FIXED VERSION)
     async function initPush() {
         if (!('serviceWorker' in navigator)) return;
         
@@ -147,6 +152,7 @@
         if (permission === 'granted') {
             const registration = await navigator.serviceWorker.ready;
             
+            // Your Firebase VAPID Key
             const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
 
             const subscription = await registration.pushManager.subscribe({
@@ -154,33 +160,46 @@
                 applicationServerKey: VAPID_KEY
             });
 
-            // Using the stable subscriber method
-            // This will register you to a TOPIC named after your Provider ID
+            // createSubscriber(topicId, subscriberId, targetId)
             await messaging.createSubscriber(
-                '69d05307002111bd7314', // Your FCM Provider ID
-                subscription.endpoint
+                '69d05307002111bd7314', // Your Provider ID (Topic)
+                ID.unique(),             // Unique Subscriber ID
+                subscription.endpoint    // The Target ID (Push Endpoint)
             );
             
             console.log("Push System: Registered via Provider ✅");
         }
     }
 
-    // 4. Daily Claim
+    // 5. Daily Gem Claim
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
+        const btn = document.getElementById('claim-btn');
+        btn.disabled = true;
+        btn.innerText = "Claiming...";
+
         try {
             await databases.updateDocument('myweb_db', 'user_stats', docId, {
                 gems: currentGems + 10,
                 last_claim: Date.now().toString()
             });
             location.reload();
-        } catch (e) { alert(e.message); }
+        } catch (e) {
+            alert("Claim failed: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "🎁 Claim 10 Gems";
+        }
     }
 
-    // 5. Idea Submission
+    // 6. Send Idea Submission
     async function sendIdea() {
         const idea = document.getElementById('idea-text').value;
+        const btn = document.getElementById('idea-btn');
         if(!idea) return alert("Vision cannot be empty!");
+
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+
         try {
             await databases.createDocument('myweb_db', 'user_ideas', ID.unique(), {
                 "content": idea, 
@@ -188,15 +207,21 @@
             });
             alert("Idea Received!");
             document.getElementById('idea-text').value = "";
-        } catch (e) { alert(e.message); }
+        } catch (e) { 
+            alert("Error: " + e.message); 
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Launch Idea 🚀";
+        }
     }
 
+    // 7. Logout
     async function logout() { 
         await account.deleteSession('current'); 
         window.location.href = "login.html"; 
     }
 
-    // Run the app
+    // Start App
     init();
 </script>
 </body>
