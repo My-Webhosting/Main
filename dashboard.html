@@ -81,6 +81,7 @@
 <script>
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
     
+    // 1. Initialize Appwrite
     const client = new Client()
         .setEndpoint('https://nyc.cloud.appwrite.io/v1')
         .setProject('69cdb316003b87006984');
@@ -92,7 +93,7 @@
     let docId = null;
     let userName = "";
 
-    // 1. Theme Engine
+    // 2. Theme Engine
     function toggleTheme() {
         const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.body.setAttribute('data-theme', theme);
@@ -108,7 +109,7 @@
         if (logo) logo.src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // 2. Main Init
+    // 3. Main Init
     async function init() {
         try {
             const user = await account.get();
@@ -124,10 +125,13 @@
                 docId = data.$id;
                 document.getElementById('gem-count').innerText = data.gems;
             }
-        } catch (e) { window.location.href = "login.html"; }
+        } catch (e) { 
+            console.error(e);
+            window.location.href = "login.html"; 
+        }
     }
 
-    // 3. The "Manual Override" Push Logic
+    // 4. The FIXED Manual Push Logic
     async function initPush() {
         if (!('serviceWorker' in navigator)) return;
         
@@ -145,29 +149,36 @@
         const subData = JSON.parse(JSON.stringify(subscription));
 
         try {
-            // DIRECT API CALL: This avoids "createPushTarget is not a function"
-            await client.call('post', '/messaging/targets/push', {
-                'content-type': 'application/json',
-            }, {
-                targetId: ID.unique(),
-                providerId: '69d05307002111bd7314',
-                identifier: subscription.endpoint,
-                subscribe: ['news', 'gems'], // Optional topics
-                publicKey: subData.keys.p256dh,
-                authSecret: subData.keys.auth
+            // WE USE THE FULL URL HERE to avoid the 405 error on GitHub
+            const response = await fetch('https://nyc.cloud.appwrite.io/v1/messaging/targets/push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Appwrite-Project': '69cdb316003b87006984' // Your Project ID
+                },
+                body: JSON.stringify({
+                    targetId: ID.unique(),
+                    providerId: '69d05307002111bd7314', // Your FCM Provider ID
+                    identifier: subscription.endpoint,
+                    subscribe: ['news', 'gems'],
+                    publicKey: subData.keys.p256dh,
+                    authSecret: subData.keys.auth
+                })
             });
 
-            console.log("Push System: Registered via Manual Call ✅");
-        } catch (err) {
-            if (err.code === 409) {
-                console.log("Push System: Already linked.");
+            if (response.ok) {
+                console.log("Push System: Registered via Fetch ✅");
             } else {
-                console.error("Manual Push Error:", err);
+                const errorData = await response.json();
+                console.error("Push API Error:", errorData);
             }
+
+        } catch (err) {
+            console.error("Network Error:", err);
         }
     }
 
-    // 4. Utility Functions
+    // 5. Utility Functions
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
         try {
