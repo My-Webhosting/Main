@@ -78,9 +78,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
 <script>
+    // 1. Initialize Appwrite
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
     
-    // 1. Initialize Appwrite
     const client = new Client()
         .setEndpoint('https://nyc.cloud.appwrite.io/v1')
         .setProject('69cdb316003b87006984');
@@ -108,29 +108,42 @@
         if (logo) logo.src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // 3. Main Init
+    // 3. Main Init Function
     async function init() {
         try {
+            // Get logged in user
             const user = await account.get();
             userName = user.name;
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
 
+            // Trigger Push Registration
             initPush().catch(e => console.warn("Push Setup Error:", e));
 
+            // Fetch Gem Stats
             const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
             if (res.documents.length > 0) {
                 const data = res.documents[0];
                 docId = data.$id;
                 document.getElementById('gem-count').innerText = data.gems;
+                
+                const now = Date.now();
+                const last = parseInt(data.last_claim || 0);
+                if (now - last > 86400000) {
+                    document.getElementById('reward-status').innerText = "Ready to Claim!";
+                    document.getElementById('claim-btn').style.display = "block";
+                } else {
+                    const hours = Math.ceil((86400000 - (now - last)) / 3600000);
+                    document.getElementById('reward-status').innerText = `Next reward in ${hours}h`;
+                }
             }
         } catch (e) { 
-            console.error(e);
+            console.error("Auth Error:", e);
             window.location.href = "login.html"; 
         }
     }
 
-    // 4. The 1.9.0 Compatible Push Logic
+    // 4. THE FIX: Account-Based Push Registration
     async function initPush() {
         if (!('serviceWorker' in navigator)) return;
         
@@ -138,6 +151,8 @@
         if (permission !== 'granted') return;
 
         const registration = await navigator.serviceWorker.ready;
+        
+        // Ensure this matches your Firebase Cloud Messaging VAPID key
         const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
 
         const subscription = await registration.pushManager.subscribe({
@@ -148,16 +163,17 @@
         const subData = JSON.parse(JSON.stringify(subscription));
 
         try {
-            // Version 1.9.0 uses /account/targets/push for user device registration
+            // Manually calling the 1.9.0 Account Target API
             const response = await fetch('https://nyc.cloud.appwrite.io/v1/account/targets/push', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Appwrite-Project': '69cdb316003b87006984'
                 },
+                credentials: 'include', // CRITICAL: Sends your login session cookie
                 body: JSON.stringify({
                     targetId: ID.unique(),
-                    providerId: '69d05307002111bd7314',
+                    providerId: '69d05307002111bd7314', // Your FCM Provider ID
                     identifier: subscription.endpoint,
                     subscribe: ['news', 'gems'],
                     publicKey: subData.keys.p256dh,
@@ -169,48 +185,61 @@
                 console.log("Push System: Registered to Account ✅");
             } else {
                 const errorData = await response.json();
-                // If 409, it means this endpoint is already registered
                 if (errorData.code === 409) {
                     console.log("Push System: Device already active.");
                 } else {
                     console.error("Push API Error:", errorData);
                 }
             }
-
         } catch (err) {
-            console.error("Network Error:", err);
+            console.error("Network Error registering push:", err);
         }
     }
 
-    // 5. Utility Functions
+    // 5. Gem Claiming Logic
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
+        const btn = document.getElementById('claim-btn');
+        btn.disabled = true;
         try {
             await databases.updateDocument('myweb_db', 'user_stats', docId, {
                 gems: currentGems + 10,
                 last_claim: Date.now().toString()
             });
             location.reload();
-        } catch (e) { alert(e.message); }
+        } catch (e) { 
+            alert("Claim failed: " + e.message); 
+            btn.disabled = false;
+        }
     }
 
+    // 6. Idea Submission Logic
     async function sendIdea() {
         const idea = document.getElementById('idea-text').value;
+        const btn = document.getElementById('idea-btn');
         if(!idea) return alert("Vision cannot be empty!");
+        btn.disabled = true;
         try {
             await databases.createDocument('myweb_db', 'user_ideas', ID.unique(), {
-                "content": idea, "username": userName
+                "content": idea, 
+                "username": userName
             });
             alert("Idea Received!");
             document.getElementById('idea-text').value = "";
-        } catch (e) { alert(e.message); }
+        } catch (e) { 
+            alert("Submission failed: " + e.message); 
+        } finally {
+            btn.disabled = false;
+        }
     }
 
+    // 7. Logout Logic
     async function logout() { 
         await account.deleteSession('current'); 
         window.location.href = "login.html"; 
     }
 
+    // Start Application
     init();
 </script>
 </body>
