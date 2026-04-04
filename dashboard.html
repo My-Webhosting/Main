@@ -78,15 +78,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
 <script>
-    // 1. Initialize Appwrite
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
+    
+    // 1. Initialize Appwrite
     const client = new Client()
-    .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Make sure this has 'nyc' if your console does
-    .setProject('69cdb316003b87006984');
+        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+        .setProject('69cdb316003b87006984');
 
     const account = new Account(client);
     const databases = new Databases(client);
-    const messaging = new Messaging(client); // Added messaging
+    const messaging = new Messaging(client);
 
     let docId = null;
     let userName = "";
@@ -105,7 +106,7 @@
         document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // 3. Main Data Loader & Push Init
+    // 3. Main Data Loader
     async function init() {
         try {
             const user = await account.get();
@@ -113,8 +114,8 @@
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
 
-            // Start Push Notifications setup automatically
-            initPush().catch(e => console.log("Push setup skipped or blocked."));
+            // Trigger Push Registration
+            initPush().catch(e => console.warn("Push Setup Error:", e));
 
             const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
             
@@ -123,7 +124,6 @@
                 docId = data.$id;
                 document.getElementById('gem-count').innerText = data.gems;
                 
-                // Reward Timer Logic (Fixed)
                 const now = Date.now();
                 const last = parseInt(data.last_claim || 0);
                 if (now - last > 86400000) {
@@ -135,12 +135,49 @@
                 }
             }
         } catch (e) { 
-            console.error(e);
+            console.error("Auth Error:", e);
             window.location.href = "login.html"; 
         }
     }
 
-    // 4. Daily Claim
+    // 4. Push Notification Registration (The Fix for the 400 Error)
+    async function initPush() {
+        if (!('serviceWorker' in navigator)) return;
+        
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            const registration = await navigator.serviceWorker.ready;
+            
+            // YOUR VAPID KEY
+            const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: VAPID_KEY
+            });
+
+            // Extract the keys needed for encryption
+            const rawSubscription = JSON.parse(JSON.stringify(subscription));
+            const p256dh = rawSubscription.keys.p256dh;
+            const auth = rawSubscription.keys.auth;
+
+            // Create the Push Target in Appwrite
+            // 1st Param: Unique ID for this device
+            // 2nd Param: Browser Endpoint
+            // 3rd Param: YOUR PROVIDER ID (69d05307002111bd7314)
+            await messaging.createPushTarget(
+                ID.unique(),
+                subscription.endpoint,
+                '69d05307002111bd7314', 
+                p256dh,
+                auth
+            );
+            
+            console.log("Push System: Device Registered ✅");
+        }
+    }
+
+    // 5. Daily Claim
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
         const btn = document.getElementById('claim-btn');
@@ -156,33 +193,6 @@
         } catch (e) {
             alert("Claim failed: " + e.message);
             btn.disabled = false;
-        }
-    }
-
-    // 5. Push Notification Setup
-    async function initPush() {
-        if (!('serviceWorker' in navigator)) return;
-        
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            const registration = await navigator.serviceWorker.ready;
-            
-            // 👈 PASTE YOUR FIREBASE VAPID KEY HERE
-            const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
-
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: VAPID_KEY
-            });
-
-            // Register subscriber to Appwrite Messaging
-            // Using your Project ID as the Provider ID (standard for FCM setup)
-            await messaging.createSubscriber(
-                '69d05307002111bd7314', 
-                subscription.endpoint,
-                ['news', 'gems']
-            );
-            console.log("Push System: Registered ✅");
         }
     }
 
@@ -212,8 +222,9 @@
         window.location.href = "login.html"; 
     }
 
-    // Launch the app
+    // Start App
     init();
+</script>
 </script>
 </body>
 </html>
