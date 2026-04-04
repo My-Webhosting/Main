@@ -76,29 +76,36 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
 <script>
-    const { Client, Account, Databases, Query, ID } = Appwrite;
-    const client = new Client().setEndpoint('https://nyc.cloud.appwrite.io/v1').setProject('69cdb316003b87006984');
+    // 1. Initialize Appwrite
+    const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
+    const client = new Client()
+        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+        .setProject('69cdb316003b87006984');
+
     const account = new Account(client);
     const databases = new Databases(client);
+    const messaging = new Messaging(client); // Added messaging
 
     let docId = null;
     let userName = "";
 
-    // 1. Theme Engine
+    // 2. Theme Engine
     function toggleTheme() {
         const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.body.setAttribute('data-theme', theme);
         document.getElementById('logo').src = theme === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
         localStorage.setItem('myweb_theme', theme);
     }
+
     if(localStorage.getItem('myweb_theme')) {
         const saved = localStorage.getItem('myweb_theme');
         document.body.setAttribute('data-theme', saved);
         document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // 2. Data Loader
+    // 3. Main Data Loader & Push Init
     async function init() {
         try {
             const user = await account.get();
@@ -106,13 +113,17 @@
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
 
+            // Start Push Notifications setup automatically
+            initPush().catch(e => console.log("Push setup skipped or blocked."));
+
             const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
+            
             if (res.documents.length > 0) {
                 const data = res.documents[0];
                 docId = data.$id;
                 document.getElementById('gem-count').innerText = data.gems;
                 
-                // Reward Timer Logic
+                // Reward Timer Logic (Fixed)
                 const now = Date.now();
                 const last = parseInt(data.last_claim || 0);
                 if (now - last > 86400000) {
@@ -123,50 +134,59 @@
                     document.getElementById('reward-status').innerText = `Next reward in ${hours}h`;
                 }
             }
-        } catch (e) { window.location.href = "login.html"; }
+        } catch (e) { 
+            console.error(e);
+            window.location.href = "login.html"; 
+        }
     }
 
-    // 3. Daily Claim
+    // 4. Daily Claim
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
-        await databases.updateDocument('myweb_db', 'user_stats', docId, {
-            gems: currentGems + 10,
-            last_claim: Date.now().toString()
-        });
-        location.reload();
-    }
-const messaging = new sdk.Messaging(client);
+        const btn = document.getElementById('claim-btn');
+        btn.disabled = true;
+        btn.innerText = "Processing...";
 
-async function initPush() {
-    try {
-        // 1. Ask for browser permission
-        const permission = await Notification.requestPermission();
+        try {
+            await databases.updateDocument('myweb_db', 'user_stats', docId, {
+                gems: currentGems + 10,
+                last_claim: Date.now().toString()
+            });
+            location.reload();
+        } catch (e) {
+            alert("Claim failed: " + e.message);
+            btn.disabled = false;
+        }
+    }
+
+    // 5. Push Notification Setup
+    async function initPush() {
+        if (!('serviceWorker' in navigator)) return;
         
+        const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            // 2. Register the Service Worker (if not already done)
             const registration = await navigator.serviceWorker.ready;
             
-            // 3. Get the push token from the browser
+            // 👈 PASTE YOUR FIREBASE VAPID KEY HERE
+            const VAPID_KEY = 'YOUR_FIREBASE_VAPID_KEY_HERE';
+
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: 'YOUR_VAPID_KEY_HERE' // Paste your Firebase key here
+                applicationServerKey: VAPID_KEY
             });
 
-            // 4. Send this "Address" to Appwrite
-            // Use a unique ID for the registration (like the User ID)
+            // Register subscriber to Appwrite Messaging
+            // Using your Project ID as the Provider ID (standard for FCM setup)
             await messaging.createSubscriber(
-                'YOUR_FCM_PROVIDER_ID', // Found in Appwrite Messaging > Providers
+                '69cdb316003b87006984', 
                 subscription.endpoint,
-                ['news', 'gems'] // Topics they are subscribing to
+                ['news', 'gems']
             );
-
-            console.log("Success! You are now subscribed to MyWeb alerts.");
+            console.log("Push System: Registered ✅");
         }
-    } catch (error) {
-        console.error("Push failed:", error);
     }
-}
-    // 4. Idea Submission
+
+    // 6. Idea Submission
     async function sendIdea() {
         const idea = document.getElementById('idea-text').value;
         const btn = document.getElementById('idea-btn');
@@ -187,7 +207,12 @@ async function initPush() {
         btn.innerText = "Launch Idea 🚀";
     }
 
-    async function logout() { await account.deleteSession('current'); window.location.href = "login.html"; }
+    async function logout() { 
+        await account.deleteSession('current'); 
+        window.location.href = "login.html"; 
+    }
+
+    // Launch the app
     init();
 </script>
 </body>
