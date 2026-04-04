@@ -81,8 +81,8 @@
     // 1. Initialize Appwrite
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
     const client = new Client()
-        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
-        .setProject('69cdb316003b87006984');
+    .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Make sure this has 'nyc' if your console does
+    .setProject('69cdb316003b87006984');
 
     const account = new Account(client);
     const databases = new Databases(client);
