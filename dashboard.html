@@ -78,154 +78,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
 <script>
-    const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
-    
-    // 1. Initialize Appwrite
-    const client = new Client()
-        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
-        .setProject('69cdb316003b87006984');
-
-    const account = new Account(client);
-    const databases = new Databases(client);
-    const messaging = new Messaging(client);
-
-    let docId = null;
-    let userName = "";
-
-    // 2. Theme Engine
-    function toggleTheme() {
-        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.body.setAttribute('data-theme', theme);
-        document.getElementById('logo').src = theme === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
-        localStorage.setItem('myweb_theme', theme);
-    }
-
-    if(localStorage.getItem('myweb_theme')) {
-        const saved = localStorage.getItem('myweb_theme');
-        document.body.setAttribute('data-theme', saved);
-        document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
-    }
-
-    // 3. Main Data Loader
-    async function init() {
-        try {
-            const user = await account.get();
-            userName = user.name;
-            document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
-            document.getElementById('user-sub').innerText = user.email;
-
-            // Trigger Push Registration
-            initPush().catch(e => console.warn("Push Setup Error:", e));
-
-            const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
-            
-            if (res.documents.length > 0) {
-                const data = res.documents[0];
-                docId = data.$id;
-                document.getElementById('gem-count').innerText = data.gems;
-                
-                const now = Date.now();
-                const last = parseInt(data.last_claim || 0);
-                if (now - last > 86400000) {
-                    document.getElementById('reward-status').innerText = "Ready to Claim!";
-                    document.getElementById('claim-btn').style.display = "block";
-                } else {
-                    const hours = Math.ceil((86400000 - (now - last)) / 3600000);
-                    document.getElementById('reward-status').innerText = `Next reward in ${hours}h`;
-                }
-            }
-        } catch (e) { 
-            console.error("Auth Error:", e);
-            window.location.href = "login.html"; 
-        }
-    }
-
-    // 4. Push Notification Registration (The Fix for the 400 Error)
-    async function initPush() {
-        if (!('serviceWorker' in navigator)) return;
-        
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            const registration = await navigator.serviceWorker.ready;
-            
-            // YOUR VAPID KEY
-            const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
-
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: VAPID_KEY
-            });
-
-            // Extract the keys needed for encryption
-            const rawSubscription = JSON.parse(JSON.stringify(subscription));
-            const p256dh = rawSubscription.keys.p256dh;
-            const auth = rawSubscription.keys.auth;
-
-            // Create the Push Target in Appwrite
-            // 1st Param: Unique ID for this device
-            // 2nd Param: Browser Endpoint
-            // 3rd Param: YOUR PROVIDER ID (69d05307002111bd7314)
-            await messaging.createPushTarget(
-                ID.unique(),
-                subscription.endpoint,
-                '69d05307002111bd7314', 
-                p256dh,
-                auth
-            );
-            
-            console.log("Push System: Device Registered ✅");
-        }
-    }
-
-    // 5. Daily Claim
-    async function claimDaily() {
-        const currentGems = parseInt(document.getElementById('gem-count').innerText);
-        const btn = document.getElementById('claim-btn');
-        btn.disabled = true;
-        btn.innerText = "Processing...";
-
-        try {
-            await databases.updateDocument('myweb_db', 'user_stats', docId, {
-                gems: currentGems + 10,
-                last_claim: Date.now().toString()
-            });
-            location.reload();
-        } catch (e) {
-            alert("Claim failed: " + e.message);
-            btn.disabled = false;
-        }
-    }
-
-    // 6. Idea Submission
-    async function sendIdea() {
-        const idea = document.getElementById('idea-text').value;
-        const btn = document.getElementById('idea-btn');
-        if(!idea) return alert("Vision cannot be empty!");
-
-        btn.disabled = true;
-        btn.innerText = "Transmitting...";
-
-        try {
-            await databases.createDocument('myweb_db', 'user_ideas', ID.unique(), {
-                "content": idea,
-                "username": userName
-            });
-            alert("Idea Received! We're on it.");
-            document.getElementById('idea-text').value = "";
-        } catch (e) { alert(e.message); }
-        btn.disabled = false;
-        btn.innerText = "Launch Idea 🚀";
-    }
-
-    async function logout() { 
-        await account.deleteSession('current'); 
-        window.location.href = "login.html"; 
-    }
-
-    // Start App
-    init();
-</script><script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
-<script>
+    // Make sure these are only declared ONCE here
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
     
     const client = new Client()
@@ -239,7 +92,7 @@
     let docId = null;
     let userName = "";
 
-    // Theme Engine
+    // 1. Theme Engine
     function toggleTheme() {
         const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.body.setAttribute('data-theme', theme);
@@ -253,7 +106,7 @@
         document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // Main Init
+    // 2. Main Init
     async function init() {
         try {
             const user = await account.get();
@@ -261,7 +114,7 @@
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
 
-            // Trigger Push
+            // Start Push
             initPush().catch(e => console.warn("Push Error:", e));
 
             const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
@@ -280,10 +133,13 @@
                     document.getElementById('reward-status').innerText = `Next reward in ${hours}h`;
                 }
             }
-        } catch (e) { window.location.href = "login.html"; }
+        } catch (e) { 
+            console.error(e);
+            window.location.href = "login.html"; 
+        }
     }
 
-    // Fixed Push Logic
+    // 3. Stable Push Logic
     async function initPush() {
         if (!('serviceWorker' in navigator)) return;
         
@@ -291,7 +147,6 @@
         if (permission === 'granted') {
             const registration = await navigator.serviceWorker.ready;
             
-            // Your VAPID Key
             const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
 
             const subscription = await registration.pushManager.subscribe({
@@ -299,20 +154,18 @@
                 applicationServerKey: VAPID_KEY
             });
 
-            // Convert subscription to string for the provider
-            const subscriptionJson = JSON.stringify(subscription);
-
-            // We use createSubscriber with the PROVIDER ID
-            // This registers your device under a "Topic" named after the provider
+            // Using the stable subscriber method
+            // This will register you to a TOPIC named after your Provider ID
             await messaging.createSubscriber(
                 '69d05307002111bd7314', // Your FCM Provider ID
-                subscriptionJson
+                subscription.endpoint
             );
             
             console.log("Push System: Registered via Provider ✅");
         }
     }
 
+    // 4. Daily Claim
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
         try {
@@ -324,12 +177,14 @@
         } catch (e) { alert(e.message); }
     }
 
+    // 5. Idea Submission
     async function sendIdea() {
         const idea = document.getElementById('idea-text').value;
         if(!idea) return alert("Vision cannot be empty!");
         try {
             await databases.createDocument('myweb_db', 'user_ideas', ID.unique(), {
-                "content": idea, "username": userName
+                "content": idea, 
+                "username": userName
             });
             alert("Idea Received!");
             document.getElementById('idea-text').value = "";
@@ -341,8 +196,8 @@
         window.location.href = "login.html"; 
     }
 
+    // Run the app
     init();
-</script>
 </script>
 </body>
 </html>
