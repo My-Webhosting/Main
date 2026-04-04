@@ -78,11 +78,9 @@
 
 <!-- Load the latest Appwrite SDK to ensure createPushTarget exists -->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
-
 <script>
     const { Client, Account, Databases, Query, ID, Messaging } = Appwrite;
     
-    // 1. Initialize Appwrite
     const client = new Client()
         .setEndpoint('https://nyc.cloud.appwrite.io/v1')
         .setProject('69cdb316003b87006984');
@@ -94,7 +92,7 @@
     let docId = null;
     let userName = "";
 
-    // 2. Theme Engine
+    // 1. Theme Engine
     function toggleTheme() {
         const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.body.setAttribute('data-theme', theme);
@@ -110,7 +108,7 @@
         if (logo) logo.src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
     }
 
-    // 3. App Initialization
+    // 2. Main Init
     async function init() {
         try {
             const user = await account.get();
@@ -118,93 +116,72 @@
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
 
-            // Start Push Registration
             initPush().catch(e => console.warn("Push Setup Error:", e));
 
-            // Load User Stats
             const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
             if (res.documents.length > 0) {
                 const data = res.documents[0];
                 docId = data.$id;
                 document.getElementById('gem-count').innerText = data.gems;
-                
-                const now = Date.now();
-                const last = parseInt(data.last_claim || 0);
-                if (now - last > 86400000) {
-                    document.getElementById('reward-status').innerText = "Ready to Claim!";
-                    document.getElementById('claim-btn').style.display = "block";
-                } else {
-                    const hours = Math.ceil((86400000 - (now - last)) / 3600000);
-                    document.getElementById('reward-status').innerText = `Next reward in ${hours}h`;
-                }
             }
-        } catch (e) { 
-            console.error("Auth Error:", e);
-            window.location.href = "login.html"; 
-        }
+        } catch (e) { window.location.href = "login.html"; }
     }
 
-    // 4. Final Push Logic (Addressing the TargetID 36-char limit)
+    // 3. The "Manual Override" Push Logic
     async function initPush() {
         if (!('serviceWorker' in navigator)) return;
         
         const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            const registration = await navigator.serviceWorker.ready;
-            
-            const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
+        if (permission !== 'granted') return;
 
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: VAPID_KEY
+        const registration = await navigator.serviceWorker.ready;
+        const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
+
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: VAPID_KEY
+        });
+
+        const subData = JSON.parse(JSON.stringify(subscription));
+
+        try {
+            // DIRECT API CALL: This avoids "createPushTarget is not a function"
+            await client.call('post', '/messaging/targets/push', {
+                'content-type': 'application/json',
+            }, {
+                targetId: ID.unique(),
+                providerId: '69d05307002111bd7314',
+                identifier: subscription.endpoint,
+                subscribe: ['news', 'gems'], // Optional topics
+                publicKey: subData.keys.p256dh,
+                authSecret: subData.keys.auth
             });
 
-            // Prepare keys for encryption
-            const subData = JSON.parse(JSON.stringify(subscription));
-            const p256dh = subData.keys.p256dh;
-            const auth = subData.keys.auth;
-
-            try {
-                // createPushTarget(targetId, identifier, providerId, publickey, authSecret)
-                // targetId: A short UID (unique to this device)
-                // identifier: The actual push endpoint (the URL)
-                await messaging.createPushTarget(
-                    ID.unique(),             // Target ID (Safe under 36 chars)
-                    subscription.endpoint,    // Identifier (The long URL)
-                    '69d05307002111bd7314',  // Your Provider ID
-                    p256dh,                  // Browser Public Key
-                    auth                     // Browser Auth Secret
-                );
-                console.log("Push System: Device Registered ✅");
-            } catch (err) {
-                if (err.code === 409) {
-                    console.log("Push System: Device already registered.");
-                } else {
-                    throw err;
-                }
+            console.log("Push System: Registered via Manual Call ✅");
+        } catch (err) {
+            if (err.code === 409) {
+                console.log("Push System: Already linked.");
+            } else {
+                console.error("Manual Push Error:", err);
             }
         }
     }
 
-    // 5. Gem & Idea Logic
+    // 4. Utility Functions
     async function claimDaily() {
         const currentGems = parseInt(document.getElementById('gem-count').innerText);
-        const btn = document.getElementById('claim-btn');
-        btn.disabled = true;
         try {
             await databases.updateDocument('myweb_db', 'user_stats', docId, {
                 gems: currentGems + 10,
                 last_claim: Date.now().toString()
             });
             location.reload();
-        } catch (e) { alert(e.message); btn.disabled = false; }
+        } catch (e) { alert(e.message); }
     }
 
     async function sendIdea() {
         const idea = document.getElementById('idea-text').value;
-        const btn = document.getElementById('idea-btn');
         if(!idea) return alert("Vision cannot be empty!");
-        btn.disabled = true;
         try {
             await databases.createDocument('myweb_db', 'user_ideas', ID.unique(), {
                 "content": idea, "username": userName
@@ -212,7 +189,6 @@
             alert("Idea Received!");
             document.getElementById('idea-text').value = "";
         } catch (e) { alert(e.message); }
-        btn.disabled = false;
     }
 
     async function logout() { 
