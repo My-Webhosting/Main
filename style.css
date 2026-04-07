@@ -1,0 +1,76 @@
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+    --card-bg: #ffffff;
+    --border: #000000;
+    --btn-bg: #000000;
+    --btn-text: #ffffff;
+}
+
+/* Dark Mode Override */
+[data-theme="dark"] {
+    --bg: #000000;
+    --text: #ffffff;
+    --card-bg: #111111;
+    --border: #ffffff;
+    --btn-bg: #ffffff;
+    --btn-text: #000000;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: "Arial Black", Gadget, sans-serif; /* Thick, OG look */
+    margin: 0;
+    transition: 0.2s;
+}
+
+.store-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 4px solid var(--border);
+}
+
+.store-logo { height: 80px; }
+
+.store-container { max-width: 1000px; margin: auto; padding: 20px; }
+
+/* The 2-Column Grid Logic */
+.two-column-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Exactly 2 columns */
+    gap: 20px;
+}
+
+.flagship-card {
+    border: 5px solid var(--border);
+    padding: 40px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.app-card {
+    border: 3px solid var(--border);
+    padding: 20px;
+    background: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.og-btn, .launch-btn {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+    .two-column-grid { grid-template-columns: 1fr; } /* Stack on phones */
+}

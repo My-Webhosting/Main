@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyWeb Notes | Secure Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-text: #000000; --accent-blue: #2563eb; --bg-color: #ffffff; --card-bg: #fcfcfc; --border: #eeeeee; --muted-text: #666; }
+        [data-theme="dark"] { --primary-text: #ffffff; --accent-blue: #3b82f6; --bg-color: #0a0a0a; --card-bg: #16161a; --border: #27272a; --muted-text: #a1a1aa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s; }
+        body { background-color: var(--bg-color); color: var(--primary-text); padding: 40px 5%; }
+        .notes-container { max-width: 700px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 40px; }
+        #auth-screen { text-align: center; padding: 100px 0; display: none; }
+        #notes-content { display: none; }
+        .note-slot { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        textarea { width: 100%; height: 100px; background: var(--bg-color); color: var(--primary-text); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 1rem; resize: none; outline: none; }
+        textarea:focus { border-color: var(--accent-blue); }
+        .btn { padding: 8px 18px; background: var(--primary-text); color: var(--bg-color); border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
+        .status-msg { font-size: 0.75rem; margin-top: 8px; font-weight: 600; min-height: 1rem; }
+        .success { color: #1b8d45; } .loading { color: var(--accent-blue); } .error { color: #d93025; }
+    </style>
+</head>
+<body>
+
+<div class="notes-container">
+    <header>
+        <h1 id="greeting">MyWeb Notes</h1>
+        <p id="sub-status" style="font-size: 0.8rem; color: var(--muted-text);">Loading session...</p>
+    </header>
+
+    <div id="auth-screen">
+        <h2>Login Required</h2>
+        <p style="margin: 20px 0;">Please log in to your MyWeb account to view your notes.</p>
+        <button class="btn" onclick="window.location.reload()">Refresh Page</button>
+    </div>
+
+    <div id="notes-content">
+        <div id="notes-list"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
+<script>
+    const client = new Appwrite.Client()
+        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+        .setProject('69cdb316003b87006984');
+
+    const databases = new Appwrite.Databases(client);
+    const account = new Appwrite.Account(client);
+    
+    const DB_ID = 'myweb_db';
+    const COLL_ID = 'usernotes';
+
+    // Theme Sync
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+
+    async function init() {
+        try {
+            const user = await account.get();
+            document.getElementById('greeting').innerText = `Notes for ${user.name}`;
+            document.getElementById('sub-status').innerText = "Connected to MyWeb Cloud";
+            document.getElementById('notes-content').style.display = "block";
+            
+            renderAndLoad(user.$id);
+        } catch (err) {
+            document.getElementById('auth-screen').style.display = "block";
+            document.getElementById('sub-status').innerText = "Not Authenticated";
+        }
+    }
+
+    function renderAndLoad(userId) {
+        const list = document.getElementById('notes-list');
+        list.innerHTML = ""; // Clear existing
+
+        for (let i = 1; i <= 5; i++) {
+            const docId = `note_${userId}_${i}`; // Unified ID Pattern
+            
+            list.innerHTML += `
+                <div class="note-slot">
+                    <div class="note-header">
+                        <strong>Slot #${i}</strong>
+                        <button class="btn" id="btn-${i}" onclick="saveNote('${docId}', ${i}, '${userId}')">Save Changes</button>
+                    </div>
+                    <textarea id="text-${i}" placeholder="Empty note slot..."></textarea>
+                    <div class="status-msg" id="status-${i}"></div>
+                </div>
+            `;
+
+            // Immediate Load for this slot
+            databases.getDocument(DB_ID, COLL_ID, docId).then(doc => {
+                document.getElementById(`text-${i}`).value = doc.content;
+            }).catch(e => console.log(`Slot ${i} is new.`));
+        }
+    }
+
+    async function saveNote(docId, slotNum, userId) {
+        const text = document.getElementById(`text-${slotNum}`).value;
+        const status = document.getElementById(`status-${slotNum}`);
+        const btn = document.getElementById(`btn-${slotNum}`);
+
+        btn.disabled = true;
+        status.innerText = "Syncing...";
+        status.className = "status-msg loading";
+
+        const data = { content: text, slot: slotNum, ownerid: userId };
+
+        try {
+            // Try Update
+            await databases.updateDocument(DB_ID, COLL_ID, docId, data);
+            status.innerText = "✓ Saved";
+            status.className = "status-msg success";
+        } catch (err) {
+            if (err.code === 404) {
+                // If 404, Create
+                try {
+                    await databases.createDocument(DB_ID, COLL_ID, docId, data);
+                    status.innerText = "✓ Created & Saved";
+                    status.className = "status-msg success";
+                } catch (cErr) {
+                    status.innerText = "Error: Check Permissions";
+                    status.className = "status-msg error";
+                }
+            } else {
+                status.innerText = "Connection Error";
+                status.className = "status-msg error";
+            }
+        } finally {
+            btn.disabled = false;
+            setTimeout(() => { if(status.className.includes("success")) status.innerText = ""; }, 3000);
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
