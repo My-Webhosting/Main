@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyWeb App Store | Discover & Create</title>
+    
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --primary-text: #000000;
@@ -38,6 +41,7 @@
             background-color: var(--bg-color);
             color: var(--primary-text);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         /* --- Navigation --- */
@@ -53,10 +57,11 @@
             z-index: 1000;
         }
 
-        .logo-img { height: 40px; width: auto; }
+        .logo-img { height: 40px; width: auto; cursor: pointer; }
 
         .nav-links { display: flex; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--muted-text); margin-left: 2rem; font-weight: 500; }
+        .nav-links a { text-decoration: none; color: var(--muted-text); margin-left: 2rem; font-weight: 500; font-size: 0.9rem; }
+        .nav-links a:hover { color: var(--primary-text); }
         
         #theme-toggle {
             background: var(--border);
@@ -65,95 +70,116 @@
             border-radius: 8px;
             cursor: pointer;
             margin-left: 2rem;
+            font-size: 1.2rem;
         }
 
         /* --- Hero Section --- */
         .hero {
-            padding: 60px 8% 40px;
+            padding: 80px 8% 60px;
             text-align: center;
             background: var(--hero-bg);
         }
 
-        .hero h1 { font-size: 3rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 10px; }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -3px; margin-bottom: 15px; }
+        .hero p { color: var(--muted-text); font-size: 1.1rem; max-width: 600px; margin: 0 auto 30px; }
+
         .badge {
             display: inline-block;
             background: var(--border);
             padding: 6px 16px;
             border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            font-weight: 800;
             text-transform: uppercase;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
 
-        /* --- App Grid --- */
-        .store-section { padding: 40px 8%; }
-        
-        .flagship-container { margin-bottom: 40px; }
+        /* --- Store Grid --- */
+        .store-section { padding: 40px 8% 100px; }
         
         .grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Forced 2 Columns */
-            gap: 25px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
         }
 
         .card {
             background: var(--card-bg);
-            padding: 35px;
-            border-radius: 12px;
+            padding: 40px;
+            border-radius: 16px;
             border: 1px solid var(--border);
-            text-decoration: none;
-            color: inherit;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
         }
 
         .card:hover {
             border-color: var(--primary-text);
-            transform: translateY(-3px);
-        }
-
-        .flagship-card {
-            background: var(--card-bg);
-            border: 2px solid var(--primary-text); /* Highlights 1st party */
-            padding: 50px;
-            border-radius: 16px;
-            text-align: center;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .status-tag {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             background: #e1ffeb;
             color: #1b8d45;
             padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: 600;
-            margin-left: 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            vertical-align: middle;
+            margin-left: 8px;
         }
 
-        .btn-action {
+        .btn-get {
             display: inline-block;
-            padding: 10px 24px;
+            padding: 12px 28px;
             background: var(--primary-text);
             color: var(--bg-color);
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            margin-top: 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: 25px;
             text-align: center;
+            cursor: pointer;
+            border: none;
+            width: 100%;
         }
 
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; } /* Stack on mobile */
+        .btn-get:active { transform: scale(0.98); }
+
+        #store-install-banner {
+            display: none;
+            background: var(--accent-blue);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+        }
+
+        @media (max-width: 850px) {
+            .grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
+
+    <div id="store-install-banner" onclick="installStore()">
+        📥 Add MyWeb Store to your Home Screen for a better experience!
+    </div>
+
     <nav>
-        <a href="index.html" style="text-decoration: none;">
-            <img src="MYWEB!.png" alt="MyWeb Logo" class="logo-img" id="main-logo">
-        </a>
+        <div class="nav-left">
+            <img src="MYWEB!.png" alt="MyWeb" class="logo-img" id="main-logo" onclick="window.location.href='index.html'">
+        </div>
         <div class="nav-links">
             <a href="#">Developer Portal</a>
             <button id="theme-toggle">🌓</button>
@@ -161,95 +187,133 @@
     </nav>
 
     <header class="hero">
-        <span class="badge">Official App Store</span>
-        <h1>The MyWeb Ecosystem.</h1>
-        <p>Curated 1st and 3rd party applications built for the MyWeb community.</p>
+        <span class="badge">Official Store</span>
+        <h1>The Ecosystem.</h1>
+        <p>Directly install 1st party applications and community tools to your desktop or mobile home screen.</p>
     </header>
 
     <section class="store-section">
-        <!-- 1st Party Flagship -->
-        <div class="flagship-container">
-            <div class="flagship-card">
-                <span class="badge" style="background: var(--accent-blue); color: white;">Featured 1st Party</span>
-                <h2 style="font-size: 2.2rem; margin: 10px 0;">MyWeb Game Studio</h2>
-                <p style="color: var(--muted-text); margin-bottom: 20px;">The official home of Jack's gaming projects, built on custom MyCode tech.</p>
-                <a href="studio.html" class="btn-action">Enter Studio</a>
-            </div>
-        </div>
-
-        <h2 style="margin-bottom: 30px; letter-spacing: -1px;">Community Apps</h2>
+        <h2 style="margin-bottom: 35px; letter-spacing: -1.5px; font-size: 2rem;">Available Apps</h2>
+        
         <div class="grid" id="app-grid">
-            <!-- 3rd Party Apps will be injected here -->
-        </div>
+            </div>
     </section>
 
     <script>
-        // --- DATA ---
-        const communityApps = [
-            { name: "Note Taker", desc: "Simple markdown notes for developers.", status: "Live" },
-            { name: "WeatherHub", desc: "Minimalist weather tracking service.", status: "Live" },
-            { name: "Code Snippets", desc: "Store your MyCode fragments securely.", status: "Live" },
-            { name: "Asset Manager", desc: "Manage your 3D assets for Game Studio.", status: "Live" }
+        // --- 1. CONFIGURATION ---
+        const apps = [
+            { 
+                name: "Note Taker", 
+                desc: "Secure, cloud-synced markdown notes for developers.", 
+                path: "notes/", // Points to the /notes/ folder (index.html)
+                status: "Live",
+                isFirstParty: true
+            },
+            { 
+                name: "WeatherHub", 
+                desc: "Get real-time weather data with a pure black interface.", 
+                path: "#", 
+                status: "Coming Soon",
+                isFirstParty: false
+            },
+            { 
+                name: "Code Snippets", 
+                desc: "Library for your MyCode and Python snippets.", 
+                path: "#", 
+                status: "Internal Beta",
+                isFirstParty: true
+            },
+            { 
+                name: "Asset Manager", 
+                desc: "Cloud storage for your 3D assets and Game Studio files.", 
+                path: "#", 
+                status: "Live",
+                isFirstParty: false
+            }
         ];
 
-        // --- RENDER ---
+        // --- 2. RENDER ENGINE ---
         const grid = document.getElementById('app-grid');
-        communityApps.forEach(app => {
+        
+        apps.forEach(app => {
+            const isLive = app.status === "Live";
+            const btnText = isLive ? "Get App" : "Coming Soon";
+            const btnStyle = isLive ? "" : "opacity: 0.5; cursor: not-allowed;";
+            
             grid.innerHTML += `
                 <div class="card">
                     <div>
-                        <h3>${app.name} <span class="status-tag">${app.status}</span></h3>
-                        <p style="color: var(--muted-text); margin: 10px 0;">${app.desc}</p>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <h3 style="font-size: 1.4rem;">${app.name}</h3>
+                            <span class="status-tag">${app.status}</span>
+                        </div>
+                        <p style="color: var(--muted-text);">${app.desc}</p>
                     </div>
-                    <a href="#" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Launch App →</a>
+                    <button class="btn-get" 
+                            style="${btnStyle}" 
+                            onclick="${isLive ? `directInstall('${app.path}')` : ''}">
+                        ${btnText}
+                    </button>
                 </div>
             `;
         });
 
-        // --- THEME & LOGO SYNC ---
-        const toggleBtn = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement;
-        const logoImg = document.getElementById('main-logo');
-
-        function updateLogo(theme) {
-            logoImg.src = (theme === 'dark') ? 'MYWEB2!.png' : 'MYWEB!.png';
+        // --- 3. DIRECT INSTALL BRIDGE ---
+        function directInstall(path) {
+            if (!path || path === "#") return;
+            
+            // Opens the app in a small window with the ?direct flag
+            // This triggers the beforeinstallprompt we put in /notes/index.html
+            const bridge = window.open(
+                path + "?direct=true", 
+                "MyWebInstaller", 
+                "width=450,height=600,left=100,top=100"
+            );
         }
 
-        // Initialize from shared localStorage
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        htmlElement.setAttribute('data-theme', savedTheme);
-        updateLogo(savedTheme);
+        // --- 4. STORE PWA INSTALLATION ---
+        let deferredPrompt;
+        const installBanner = document.getElementById('store-install-banner');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'block';
+        });
+
+        async function installStore() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installBanner.style.display = 'none';
+            }
+            deferredPrompt = null;
+        }
+
+        // --- 5. THEME & LOGO SYNC ---
+        const toggleBtn = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        const logo = document.getElementById('main-logo');
+
+        function setTheme(theme) {
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            logo.src = (theme === 'dark') ? 'MYWEB2!.png' : 'MYWEB!.png';
+        }
+
+        // Init Theme
+        setTheme(localStorage.getItem('theme') || 'light');
 
         toggleBtn.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = (currentTheme === 'light') ? 'dark' : 'light';
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme); // Syncs with Main site
-            updateLogo(newTheme);
+            const current = html.getAttribute('data-theme');
+            setTheme(current === 'light' ? 'dark' : 'light');
         });
-        let installPrompt;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    installPrompt = e;
-    // Show your "Add to Home Screen" button
-    document.getElementById('home-screen-btn').style.display = 'block';
-});
-
-async function addToHomeScreen() {
-    if (!installPrompt) return;
-    
-    // Show the native install dialog
-    installPrompt.prompt();
-    
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') {
-        console.log('App added to home screen!');
-        document.getElementById('home-screen-btn').style.display = 'none';
-    }
-    installPrompt = null;
-}
+        // Register Service Worker (Required for Store to be installable)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
     </script>
 </body>
 </html>
