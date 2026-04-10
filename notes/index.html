@@ -149,21 +149,37 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('Service Worker Failed', err));
   });
 }
-    // Add this to the bottom of the script in notes.html
-const urlParams = new URLSearchParams(window.location.search);
+   const urlParams = new URLSearchParams(window.location.search);
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    // If the URL has ?direct=true, trigger the popup immediately
-    if (urlParams.get('direct') === 'true') {
+if (urlParams.get('direct') === 'true') {
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
-        e.prompt(); // This shows the "Install" box instantly
-        
-        e.userChoice.then((choiceResult) => {
-            // Once they click "Install" or "Cancel", close this window
-            window.close(); 
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+
+        // Force the prompt to show
+        deferredPrompt.prompt();
+
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            }
+            // THIS CLOSES THE WINDOW automatically after they click Install or Cancel
+            setTimeout(() => {
+                window.close();
+            }, 500); 
         });
-    }
-});
+    });
+}
+
+// Ensure the Service Worker is registered
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+}
 </script>
 </body>
 </html>
