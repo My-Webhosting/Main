@@ -1,0 +1,24 @@
+{
+  "name": "MyWeb App Store",
+  "short_name": "MyWeb Store",
+  "description": "Discover and install MyWeb applications.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://my-webhosting.github.io/Main/img/Store.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://my-webhosting.github.io/Main/img/Store.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
