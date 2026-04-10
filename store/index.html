@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyWeb App Store | Discover & Create</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-text: #000000;
+            --accent-blue: #2563eb;
+            --bg-color: #ffffff;
+            --card-bg: #fcfcfc;
+            --border: #eeeeee;
+            --hero-bg: radial-gradient(circle at center, #fafafa 0%, #ffffff 100%);
+            --muted-text: #666;
+        }
+
+        [data-theme="dark"] {
+            --primary-text: #ffffff;
+            --accent-blue: #3b82f6;
+            --bg-color: #0a0a0a;
+            --card-bg: #16161a;
+            --border: #27272a;
+            --hero-bg: radial-gradient(circle at center, #111111 0%, #0a0a0a 100%);
+            --muted-text: #a1a1aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            line-height: 1.6;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 8%;
+            background: var(--bg-color);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-img { height: 40px; width: auto; }
+
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--muted-text); margin-left: 2rem; font-weight: 500; }
+        
+        #theme-toggle {
+            background: var(--border);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 2rem;
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            padding: 60px 8% 40px;
+            text-align: center;
+            background: var(--hero-bg);
+        }
+
+        .hero h1 { font-size: 3rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 10px; }
+        .badge {
+            display: inline-block;
+            background: var(--border);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        /* --- App Grid --- */
+        .store-section { padding: 40px 8%; }
+        
+        .flagship-container { margin-bottom: 40px; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Forced 2 Columns */
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            border-color: var(--primary-text);
+            transform: translateY(-3px);
+        }
+
+        .flagship-card {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-text); /* Highlights 1st party */
+            padding: 50px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .status-tag {
+            font-size: 0.7rem;
+            background: #e1ffeb;
+            color: #1b8d45;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .btn-action {
+            display: inline-block;
+            padding: 10px 24px;
+            background: var(--primary-text);
+            color: var(--bg-color);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; } /* Stack on mobile */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" style="text-decoration: none;">
+            <img src="MYWEB!.png" alt="MyWeb Logo" class="logo-img" id="main-logo">
+        </a>
+        <div class="nav-links">
+            <a href="#">Developer Portal</a>
+            <button id="theme-toggle">🌓</button>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <span class="badge">Official App Store</span>
+        <h1>The MyWeb Ecosystem.</h1>
+        <p>Curated 1st and 3rd party applications built for the MyWeb community.</p>
+    </header>
+
+    <section class="store-section">
+        <!-- 1st Party Flagship -->
+        <div class="flagship-container">
+            <div class="flagship-card">
+                <span class="badge" style="background: var(--accent-blue); color: white;">Featured 1st Party</span>
+                <h2 style="font-size: 2.2rem; margin: 10px 0;">MyWeb Game Studio</h2>
+                <p style="color: var(--muted-text); margin-bottom: 20px;">The official home of Jack's gaming projects, built on custom MyCode tech.</p>
+                <a href="studio.html" class="btn-action">Enter Studio</a>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 30px; letter-spacing: -1px;">Community Apps</h2>
+        <div class="grid" id="app-grid">
+            <!-- 3rd Party Apps will be injected here -->
+        </div>
+    </section>
+
+    <script>
+        // --- DATA ---
+        const communityApps = [
+            { name: "Note Taker", desc: "Simple markdown notes for developers.", status: "Live" },
+            { name: "WeatherHub", desc: "Minimalist weather tracking service.", status: "Live" },
+            { name: "Code Snippets", desc: "Store your MyCode fragments securely.", status: "Live" },
+            { name: "Asset Manager", desc: "Manage your 3D assets for Game Studio.", status: "Live" }
+        ];
+
+        // --- RENDER ---
+        const grid = document.getElementById('app-grid');
+        communityApps.forEach(app => {
+            grid.innerHTML += `
+                <div class="card">
+                    <div>
+                        <h3>${app.name} <span class="status-tag">${app.status}</span></h3>
+                        <p style="color: var(--muted-text); margin: 10px 0;">${app.desc}</p>
+                    </div>
+                    <a href="#" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Launch App →</a>
+                </div>
+            `;
+        });
+
+        // --- THEME & LOGO SYNC ---
+        const toggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const logoImg = document.getElementById('main-logo');
+
+        function updateLogo(theme) {
+            logoImg.src = (theme === 'dark') ? 'MYWEB2!.png' : 'MYWEB!.png';
+        }
+
+        // Initialize from shared localStorage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateLogo(savedTheme);
+
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = (currentTheme === 'light') ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme); // Syncs with Main site
+            updateLogo(newTheme);
+        });
+    </script>
+</body>
+</html>
