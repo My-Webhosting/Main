@@ -41,10 +41,8 @@
             background-color: var(--bg-color);
             color: var(--primary-text);
             line-height: 1.6;
-            overflow-x: hidden;
         }
 
-        /* --- Navigation --- */
         nav {
             display: flex;
             justify-content: space-between;
@@ -61,7 +59,6 @@
 
         .nav-links { display: flex; align-items: center; }
         .nav-links a { text-decoration: none; color: var(--muted-text); margin-left: 2rem; font-weight: 500; font-size: 0.9rem; }
-        .nav-links a:hover { color: var(--primary-text); }
         
         #theme-toggle {
             background: var(--border);
@@ -73,7 +70,6 @@
             font-size: 1.2rem;
         }
 
-        /* --- Hero Section --- */
         .hero {
             padding: 80px 8% 60px;
             text-align: center;
@@ -92,10 +88,8 @@
             font-weight: 800;
             text-transform: uppercase;
             margin-bottom: 20px;
-            letter-spacing: 1px;
         }
 
-        /* --- Store Grid --- */
         .store-section { padding: 40px 8% 100px; }
         
         .grid {
@@ -112,13 +106,11 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            position: relative;
         }
 
         .card:hover {
             border-color: var(--primary-text);
             transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .status-tag {
@@ -128,7 +120,6 @@
             padding: 4px 10px;
             border-radius: 20px;
             font-weight: 700;
-            vertical-align: middle;
             margin-left: 8px;
         }
 
@@ -147,8 +138,6 @@
             width: 100%;
         }
 
-        .btn-get:active { transform: scale(0.98); }
-
         #store-install-banner {
             display: none;
             background: var(--accent-blue);
@@ -166,14 +155,13 @@
 
         @media (max-width: 850px) {
             .grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
 
     <div id="store-install-banner" onclick="installStore()">
-        📥 Add MyWeb Store to your Home Screen for a better experience!
+        📥 Add MyWeb Store to your Home Screen!
     </div>
 
     <nav>
@@ -187,9 +175,9 @@
     </nav>
 
     <header class="hero">
-        <span class="badge">Official Store</span>
+        <span class="badge">Official App Store</span>
         <h1>The Ecosystem.</h1>
-        <p>Directly install 1st party applications and community tools to your desktop or mobile home screen.</p>
+        <p>Directly install MyWeb applications to your home screen.</p>
     </header>
 
     <section class="store-section">
@@ -204,42 +192,20 @@
         const apps = [
             { 
                 name: "Note Taker", 
-                desc: "Secure, cloud-synced markdown notes for developers.", 
-                path: "notes/", // Points to the /notes/ folder (index.html)
-                status: "Live",
-                isFirstParty: true
+                desc: "Secure, cloud-synced markdown notes.", 
+                // UPDATED PATH TO YOUR GITHUB PAGES LINK
+                path: "https://my-webhosting.github.io/Main/notes/", 
+                status: "Live"
             },
-            { 
-                name: "WeatherHub", 
-                desc: "Get real-time weather data with a pure black interface.", 
-                path: "#", 
-                status: "Coming Soon",
-                isFirstParty: false
-            },
-            { 
-                name: "Code Snippets", 
-                desc: "Library for your MyCode and Python snippets.", 
-                path: "#", 
-                status: "Internal Beta",
-                isFirstParty: true
-            },
-            { 
-                name: "Asset Manager", 
-                desc: "Cloud storage for your 3D assets and Game Studio files.", 
-                path: "#", 
-                status: "Live",
-                isFirstParty: false
-            }
+            { name: "WeatherHub", desc: "Pure black weather interface.", path: "#", status: "Coming Soon" },
+            { name: "Code Snippets", desc: "Library for your MyCode snippets.", path: "#", status: "Beta" },
+            { name: "Asset Manager", desc: "3D asset cloud storage.", path: "#", status: "Live" }
         ];
 
-        // --- 2. RENDER ENGINE ---
+        // --- 2. RENDER ---
         const grid = document.getElementById('app-grid');
-        
         apps.forEach(app => {
-            const isLive = app.status === "Live";
-            const btnText = isLive ? "Get App" : "Coming Soon";
-            const btnStyle = isLive ? "" : "opacity: 0.5; cursor: not-allowed;";
-            
+            const isLive = app.status !== "Coming Soon";
             grid.innerHTML += `
                 <div class="card">
                     <div>
@@ -250,9 +216,9 @@
                         <p style="color: var(--muted-text);">${app.desc}</p>
                     </div>
                     <button class="btn-get" 
-                            style="${btnStyle}" 
+                            style="${isLive ? '' : 'opacity: 0.5; cursor: not-allowed;'}" 
                             onclick="${isLive ? `directInstall('${app.path}')` : ''}">
-                        ${btnText}
+                        ${isLive ? 'Get App' : 'Planned'}
                     </button>
                 </div>
             `;
@@ -262,16 +228,16 @@
         function directInstall(path) {
             if (!path || path === "#") return;
             
-            // Opens the app in a small window with the ?direct flag
-            // This triggers the beforeinstallprompt we put in /notes/index.html
-            const bridge = window.open(
+            // This opens your notes URL with the ?direct=true flag
+            // Ensure your notes/index.html has the listener we wrote earlier!
+            window.open(
                 path + "?direct=true", 
                 "MyWebInstaller", 
                 "width=450,height=600,left=100,top=100"
             );
         }
 
-        // --- 4. STORE PWA INSTALLATION ---
+        // --- 4. STORE INSTALLATION ---
         let deferredPrompt;
         const installBanner = document.getElementById('store-install-banner');
 
@@ -291,7 +257,7 @@
             deferredPrompt = null;
         }
 
-        // --- 5. THEME & LOGO SYNC ---
+        // --- 5. THEME ENGINE ---
         const toggleBtn = document.getElementById('theme-toggle');
         const html = document.documentElement;
         const logo = document.getElementById('main-logo');
@@ -302,7 +268,6 @@
             logo.src = (theme === 'dark') ? 'MYWEB2!.png' : 'MYWEB!.png';
         }
 
-        // Init Theme
         setTheme(localStorage.getItem('theme') || 'light');
 
         toggleBtn.addEventListener('click', () => {
@@ -310,7 +275,6 @@
             setTheme(current === 'light' ? 'dark' : 'light');
         });
 
-        // Register Service Worker (Required for Store to be installable)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js');
         }
