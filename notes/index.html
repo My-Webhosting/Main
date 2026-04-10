@@ -149,6 +149,21 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('Service Worker Failed', err));
   });
 }
+    // Add this to the bottom of the script in notes.html
+const urlParams = new URLSearchParams(window.location.search);
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // If the URL has ?direct=true, trigger the popup immediately
+    if (urlParams.get('direct') === 'true') {
+        e.preventDefault();
+        e.prompt(); // This shows the "Install" box instantly
+        
+        e.userChoice.then((choiceResult) => {
+            // Once they click "Install" or "Cancel", close this window
+            window.close(); 
+        });
+    }
+});
 </script>
 </body>
 </html>
