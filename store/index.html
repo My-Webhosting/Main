@@ -228,6 +228,28 @@
             localStorage.setItem('theme', newTheme); // Syncs with Main site
             updateLogo(newTheme);
         });
+        let installPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    // Show your "Add to Home Screen" button
+    document.getElementById('home-screen-btn').style.display = 'block';
+});
+
+async function addToHomeScreen() {
+    if (!installPrompt) return;
+    
+    // Show the native install dialog
+    installPrompt.prompt();
+    
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+        console.log('App added to home screen!');
+        document.getElementById('home-screen-btn').style.display = 'none';
+    }
+    installPrompt = null;
+}
     </script>
 </body>
 </html>
