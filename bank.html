@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyWeb | Bank</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
+    <style>
+        /* Reusing your exact dashboard styles */
+        :root { --bg: #ffffff; --sidebar: #f4f4f4; --card: #ffffff; --text: #1a1a1a; --border: #ddd; }
+        [data-theme="dark"] { --bg: #050505; --sidebar: #0a0a0a; --card: #111; --text: #ffffff; --border: #222; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 30px; display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 40px; max-width: 1100px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .stat-card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid var(--border); }
+        .btn { background: var(--text); color: var(--bg); border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
+        .nav-link { padding: 10px; color: var(--text); text-decoration: none; display: block; margin-bottom: 5px; opacity: 0.7; }
+        .nav-link.active { opacity: 1; font-weight: bold; border-left: 3px solid var(--text); padding-left: 7px; }
+    </style>
+</head>
+<body data-theme="dark">
+<div class="sidebar">
+    <img id="logo" src="MYWEB2!.png" style="width:140px; margin-bottom:40px;">
+    <div style="flex:1">
+        <a href="dashboard.html" class="nav-link">Overview</a>
+        <a href="bank.html" class="nav-link active">The Bank</a>
+    </div>
+</div>
+
+<div class="main">
+    <h1 style="font-size: 36px; margin-bottom: 40px;">The Vault</h1>
+    
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div style="font-size:12px; color:gray; letter-spacing:1px; font-weight:700;">CURRENT BALANCE</div>
+            <div id="niftoes-count" style="font-size:48px; font-weight:900; margin:10px 0;">0</div>
+            <div style="color:var(--text); font-size:14px;">🪙 Niftoes in Vault</div>
+        </div>
+
+        <div class="stat-card">
+            <div style="font-size:12px; color:gray; letter-spacing:1px; font-weight:700;">DAILY BONUS</div>
+            <div id="reward-status" style="font-size:20px; margin:20px 0; font-weight:600;">Checking...</div>
+            <button id="claim-btn" class="btn" onclick="claimDaily()" style="display:none;">🎁 Claim 10 Niftoes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { Client, Account, Databases, Query, ID } = Appwrite;
+    const client = new Client().setEndpoint('https://nyc.cloud.appwrite.io/v1').setProject('69cdb316003b87006984');
+    const account = new Account(client);
+    const databases = new Databases(client);
+
+    let docId = null;
+
+    async function initBank() {
+        // Apply theme from dashboard
+        const saved = localStorage.getItem('myweb_theme') || 'dark';
+        document.body.setAttribute('data-theme', saved);
+        document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
+
+        try {
+            const user = await account.get();
+            const res = await databases.listDocuments('myweb_db', 'user_stats', [Query.equal('username', [user.name])]);
+            
+            if (res.documents.length > 0) {
+                const data = res.documents[0];
+                docId = data.$id;
+                document.getElementById('niftoes-count').innerText = data.gems;
+
+                const now = Date.now();
+                const last = parseInt(data.last_claim || 0);
+                if (now - last > 86400000) {
+                    document.getElementById('reward-status').innerText = "Ready to Claim!";
+                    document.getElementById('claim-btn').style.display = "block";
+                } else {
+                    const hours = Math.ceil((86400000 - (now - last)) / 3600000);
+                    document.getElementById('reward-status').innerText = `${hours}h until next Niftoes`;
+                }
+            }
+        } catch (e) { window.location.href = "login.html"; }
+    }
+
+    async function claimDaily() {
+        const current = parseInt(document.getElementById('niftoes-count').innerText);
+        try {
+            await databases.updateDocument('myweb_db', 'user_stats', docId, {
+                gems: current + 10,
+                last_claim: Date.now().toString()
+            });
+            location.reload();
+        } catch (e) { alert(e.message); }
+    }
+
+    initBank();
+</script>
+</body>
+</html>
