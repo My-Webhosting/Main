@@ -2,15 +2,16 @@
   "short_name": "MyWeb",
   "name": "MyWebHosting",
   "icons": [
-  {
-    "src": "img/APP.png",
-    "sizes": "512x512",
-    "type": "image/png",
-    "purpose": "any maskable" 
-  }
-],
+    {
+      "src": "img/APP.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable" 
+    }
+  ],
   "start_url": "./login.html",
   "display": "standalone",
   "theme_color": "#050505",
-  "background_color": "#050505"
+  "background_color": "#050505",
+  "gcm_sender_id": "144209810658"
 }
