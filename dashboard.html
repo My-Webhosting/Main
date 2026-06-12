@@ -46,8 +46,14 @@
 </div>
 
 <script>
-    const { Client, Account, Databases, ID } = Appwrite;
-    const client = new Client().setEndpoint('https://nyc.cloud.appwrite.io/v1').setProject('69cdb316003b87006984');
+    // Destructured Appwrite Components
+    const { Client, Account, Databases, ID, Messaging } = Appwrite;
+    
+    // Config
+    const client = new Client()
+        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+        .setProject('69cdb316003b87006984');
+
     const account = new Account(client);
     const databases = new Databases(client);
 
@@ -60,11 +66,61 @@
             document.getElementById('welcome-title').innerText = `Hello, ${user.name}`;
             document.getElementById('user-sub').innerText = user.email;
             
-            // Apply theme
+            // 1. APPLY THEME
             const saved = localStorage.getItem('myweb_theme') || 'dark';
             document.body.setAttribute('data-theme', saved);
             document.getElementById('logo').src = saved === 'dark' ? 'MYWEB2!.png' : 'MYWEB!.png';
+
+            // 2. TRIGGER PUSH SETUP (Added this!)
+            initPush().catch(e => console.warn("Push Setup Error:", e));
+
         } catch (e) { window.location.href = "login.html"; }
+    }
+
+    // PUSH LOGIC (The missing function)
+    async function initPush() {
+        if (!('serviceWorker' in navigator)) return;
+        
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+
+        const registration = await navigator.serviceWorker.ready;
+        const VAPID_KEY = 'BPdw-evLUFEEKMvWvFiUu0ZPkhhrYLgYzO__UPMr1Qm51jTIvfirXCqKErVc947aC-CFEBi2qH_a-Qr3xre2UOk';
+
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: VAPID_KEY
+        });
+
+        const subData = JSON.parse(JSON.stringify(subscription));
+
+        try {
+            const response = await fetch('https://nyc.cloud.appwrite.io/v1/account/targets/push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Appwrite-Project': '69cdb316003b87006984'
+                },
+                credentials: 'include', // Sends your Appwrite Login Session
+                body: JSON.stringify({
+                    targetId: ID.unique(),
+                    providerId: '69d05307002111bd7314', // Your FCM Provider
+                    identifier: subscription.endpoint,
+                    subscribe: ['news', 'gems'],
+                    publicKey: subData.keys.p256dh,
+                    authSecret: subData.keys.auth
+                })
+            });
+
+            if (response.ok) {
+                console.log("Push System: Registered to Account ✅");
+            } else {
+                const errorData = await response.json();
+                console.error("Push API Error:", errorData);
+            }
+        } catch (err) {
+            console.error("Network Error registering push:", err);
+        }
     }
 
     async function sendIdea() {
