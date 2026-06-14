@@ -4,18 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyWeb Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.2/dist/iife/sdk.min.js"></script>
   <style>
     :root {
-      --bg: #0a0a0a;
-      --surface: #111113;
-      --surface2: #16161a;
-      --border: #27272a;
-      --border-light: #3f3f46;
+      --bg: #000000;
+      --surface: #0a0a0c;
+      --surface2: #121214;
+      --border: #222225;
+      --border-light: #3a3a3f;
       --text: #ffffff;
       --text-muted: #a1a1aa;
-      --text-dim: #71717a;
+      --text-dim: #61616a;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
       --accent-soft: rgba(37,99,235,0.12);
@@ -41,14 +41,11 @@
       display: flex;
     }
 
-    /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
 
-    /* ══════════════════════════════
-       AUTH SCREEN
-    ══════════════════════════════ */
+    /* ══ AUTH SCREEN ══ */
     #auth-screen {
       position: fixed; inset: 0;
       background: var(--bg);
@@ -133,10 +130,9 @@
       margin-bottom: 14px; display: none;
     }
 
-    /* ─── App Layout ─── */
+    /* ══ APP LAYOUT ══ */
     #app { display: none; flex: 1; height: 100vh; overflow: hidden; }
 
-    /* Icon nav rail */
     .nav-rail {
       width: var(--nav-w);
       background: var(--surface);
@@ -189,7 +185,6 @@
       text-transform: uppercase;
     }
 
-    /* Sidebar */
     .sidebar {
       width: var(--sidebar-w);
       background: var(--surface);
@@ -250,15 +245,8 @@
     .channel-item:hover, .dm-item:hover { background: var(--surface2); }
     .channel-item.active, .dm-item.active { background: var(--accent-soft); color: var(--accent); }
 
-    .sidebar-actions-btn {
-      opacity: 0; font-size: 10px; position: absolute; right: 10px; top: 50%;
-      transform: translateY(-50%); transition: opacity 0.15s; background: none; border: none; cursor: pointer;
-    }
-    .channel-item:hover .sidebar-actions-btn, .dm-item:hover .sidebar-actions-btn { opacity: 0.6; }
-    .sidebar-actions-btn:hover { opacity: 1 !important; }
-
     .channel-hash { font-size: 16px; color: var(--text-dim); flex-shrink: 0; }
-    .channel-name { font-size: 0.875rem; font-weight: 500; flex: 1; margin-right: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .channel-name { font-size: 0.875rem; font-weight: 500; flex: 1; }
 
     .dm-status {
       width: 8px; height: 8px; border-radius: 50%;
@@ -267,15 +255,9 @@
     }
 
     .dm-status.online { background: var(--green); }
+    .dm-name { font-size: 0.875rem; font-weight: 500; flex: 1; }
+    .unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
-    .dm-name { font-size: 0.875rem; font-weight: 500; flex: 1; margin-right: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .unread-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--accent); flex-shrink: 0;
-    }
-
-    /* Main chat area */
     .chat-area {
       flex: 1; display: flex; flex-direction: column; overflow: hidden;
       background: var(--bg);
@@ -298,7 +280,7 @@
       display: flex; flex-direction: column; gap: 2px;
     }
 
-    .msg-group { display: flex; gap: 12px; margin-top: 12px; position: relative; }
+    .msg-group { display: flex; gap: 12px; margin-top: 12px; }
 
     .msg-avatar {
       width: 36px; height: 36px; border-radius: 50%;
@@ -312,7 +294,7 @@
     .msg-content { flex: 1; min-width: 0; }
 
     .msg-meta {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: baseline; gap: 8px;
       margin-bottom: 3px;
     }
 
@@ -325,22 +307,27 @@
       line-height: 1.55; word-break: break-word;
     }
 
-    .msg-continued {
-      padding-left: 48px;
+    .msg-img {
+      max-width: 320px;
+      max-height: 240px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-top: 6px;
+      cursor: pointer;
+      display: block;
+      transition: transform 0.2s;
     }
+    .msg-img:hover { transform: scale(1.02); }
 
-    .msg-continued .msg-text {
-      font-size: 0.9rem;
-    }
+    .msg-continued { padding-left: 48px; }
+    .msg-continued .msg-text { font-size: 0.9rem; }
 
-    /* System message */
     .msg-system {
       text-align: center;
       font-size: 0.78rem; color: var(--text-dim);
       padding: 6px 0; margin: 4px 0;
     }
 
-    /* Chat input */
     .chat-input-wrap {
       padding: 12px 20px 16px;
       border-top: 1px solid var(--border);
@@ -378,12 +365,10 @@
     .send-btn:hover { background: var(--accent-hover); }
     .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* ══════════════════════════════
-       PANELS (Friends, Requests, Profile)
-    ══════════════════════════════ */
+    /* ══ PANELS ══ */
     .panel {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.75);
       backdrop-filter: blur(4px);
       z-index: 200; display: none;
       align-items: center; justify-content: center;
@@ -407,17 +392,65 @@
     }
 
     .panel-title { font-weight: 700; font-size: 1rem; flex: 1; }
-
     .panel-body { flex: 1; overflow-y: auto; padding: 16px; }
-
     .panel-section { margin-bottom: 24px; }
+
     .panel-section-title {
       font-size: 0.75rem; font-weight: 700; color: var(--text-dim);
       text-transform: uppercase; letter-spacing: 0.8px;
       margin-bottom: 10px;
     }
 
-    /* Friend row */
+    .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .dev-stat-card { background: var(--surface2); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); }
+    .dev-stat-val { font-size: 1.3rem; font-weight: 700; color: var(--accent); margin-top: 4px; }
+
+    /* Dev Chat List Directory Styles */
+    .dev-chats-directory {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 250px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+
+    .dev-chat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .dev-chat-row:hover {
+      border-color: var(--border-light);
+    }
+
+    .dev-badge-type {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .dev-badge-type.dm {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .dev-badge-type.gc {
+      background: var(--green-soft);
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+
     .friend-row {
       display: flex; align-items: center; gap: 12px;
       padding: 10px; border-radius: var(--radius);
@@ -444,30 +477,20 @@
     .btn-blue { background: var(--accent-soft); color: var(--accent); }
     .btn-blue:hover { background: var(--accent); color: #fff; }
 
-    /* Add friend input row */
-    .input-row {
-      display: flex; gap: 8px; margin-bottom: 14px;
-    }
-
+    .input-row { display: flex; gap: 8px; margin-bottom: 14px; }
     .input-row input {
       flex: 1; padding: 8px 12px;
       background: var(--surface2); border: 1px solid var(--border);
       color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.875rem;
       border-radius: var(--radius); outline: none;
     }
-
     .input-row input:focus { border-color: var(--border-light); }
 
-    /* Create group modal */
-    .create-group-form .field { margin-bottom: 12px; }
-
-    /* Profile panel */
     .profile-wrap { display: flex; flex-direction: column; align-items: center; padding: 24px 0 8px; gap: 12px; }
     .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; }
     .profile-name { font-size: 1.1rem; font-weight: 700; }
     .profile-tag { font-size: 0.85rem; color: var(--text-muted); }
 
-    /* Nickname badge */
     .nick-badge {
       display: inline-block;
       background: var(--surface2); border: 1px solid var(--border);
@@ -475,27 +498,14 @@
       padding: 2px 8px; border-radius: 100px;
       cursor: pointer;
     }
-
     .nick-badge:hover { border-color: var(--border-light); }
 
-    /* Toast */
-    .toast-wrap {
-      position: fixed; bottom: 24px; right: 24px;
-      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
-    }
-
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
     .toast {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      font-size: 0.85rem;
-      display: flex; align-items: center; gap: 10px;
-      min-width: 240px;
-      animation: slide-in 0.2s ease;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; border-radius: var(--radius);
+      font-size: 0.85rem; display: flex; align-items: center; gap: 10px; min-width: 240px;
+      animation: slide-in 0.2s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
-
     .toast.success .toast-dot { background: var(--green); }
     .toast.error .toast-dot { background: var(--red); }
     .toast.info .toast-dot { background: var(--accent); }
@@ -506,17 +516,11 @@
       to { opacity: 1; transform: translateX(0); }
     }
 
-    /* Empty state */
-    .empty-state {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; gap: 12px; color: var(--text-dim);
-    }
-
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: var(--text-dim); }
     .empty-icon { font-size: 40px; }
     .empty-title { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
     .empty-sub { font-size: 0.85rem; text-align: center; max-width: 280px; line-height: 1.5; }
 
-    /* Loading spinner */
     .spinner {
       width: 20px; height: 20px;
       border: 2px solid var(--border);
@@ -528,48 +532,20 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Typing indicator */
-    .typing-indicator {
-      padding: 4px 20px;
-      font-size: 0.78rem; color: var(--text-dim);
-      height: 20px;
-    }
-
-    /* Setup banner */
-    .setup-banner {
-      background: var(--accent-soft);
-      border: 1px solid var(--accent);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      font-size: 0.825rem; color: var(--accent);
-      margin-bottom: 12px;
-      display: none;
-    }
-
-    /* Tabs inside panel */
-    .panel-tabs {
-      display: flex; gap: 0;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .typing-indicator { padding: 4px 20px; font-size: 0.78rem; color: var(--text-dim); height: 20px; }
+    .setup-banner { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 14px; font-size: 0.825rem; color: var(--accent); margin-bottom: 12px; display: none; }
+    .panel-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
     .panel-tab {
-      padding: 12px 20px;
-      font-size: 0.85rem; font-weight: 500;
-      color: var(--text-muted); cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: 0.15s; background: none; border-top: none; border-left: none; border-right: none;
-      font-family: 'Inter', sans-serif;
+      padding: 12px 20px; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+      transition: 0.15s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Inter', sans-serif;
     }
-
     .panel-tab.active { color: var(--text); border-bottom-color: var(--accent); }
-
     .tab-content { display: none; }
     .tab-content.active { display: block; }
   </style>
 </head>
 <body>
 
-<!-- ══ AUTH SCREEN ══ -->
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-logo">
@@ -602,10 +578,7 @@
   </div>
 </div>
 
-<!-- ══ APP ══ -->
 <div id="app">
-
-  <!-- Nav Rail -->
   <nav class="nav-rail">
     <div class="nav-brand" title="MyWeb Chat">MW</div>
     <div class="nav-divider"></div>
@@ -614,13 +587,13 @@
       👥 <span class="nav-badge" id="req-badge"></span>
     </button>
     <button class="nav-btn" id="nav-groups" title="Group Chats" onclick="setNav('groups')">🏠</button>
+    <button class="nav-btn" id="nav-dev" title="Developer Panel" onclick="openPanel('dev-panel')" style="display: none;">🛠️</button>
     <div class="nav-spacer"></div>
     <button class="nav-btn" title="Settings" onclick="openPanel('profile-panel')">⚙️</button>
     <div style="height:8px;"></div>
     <div class="avatar" id="user-avatar" title="Your profile" onclick="openPanel('profile-panel')">?</div>
   </nav>
 
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <span class="sidebar-title" id="sidebar-title">Direct Messages</span>
@@ -636,7 +609,6 @@
     </div>
   </aside>
 
-  <!-- Chat Area -->
   <main class="chat-area">
     <div id="chat-header" class="chat-header">
       <span style="font-size:18px;">💬</span>
@@ -657,6 +629,8 @@
     <div class="typing-indicator" id="typing-indicator"></div>
     <div class="chat-input-wrap" id="chat-input-wrap" style="display:none;">
       <div class="chat-input-row">
+        <button class="icon-btn" title="Share Image" onclick="document.getElementById('img-file-input').click()" style="margin-bottom: 2px;">📷</button>
+        <input type="file" id="img-file-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)" />
         <textarea id="msg-input" rows="1" placeholder="Message…" onkeydown="handleMsgKey(event)" oninput="autoResize(this)"></textarea>
         <button class="send-btn" onclick="sendMessage()" title="Send">➤</button>
       </div>
@@ -664,9 +638,78 @@
   </main>
 </div>
 
-<!-- ══ PANELS ══ -->
+<div class="panel" id="dev-panel" onclick="panelBg(event,'dev-panel')">
+  <div class="panel-card" style="max-width: 500px;">
+    <div class="panel-header">
+      <span style="font-size:18px;">🛠️</span>
+      <div class="panel-title">Developer Hub Portal</div>
+      <button class="icon-btn" onclick="closePanel('dev-panel')">✕</button>
+    </div>
 
-<!-- Friends Panel -->
+    <div class="panel-tabs">
+      <button class="panel-tab active" id="dev-tab-btn-utils" onclick="switchDevTab('utils')">Utilities</button>
+      <button class="panel-tab" id="dev-tab-btn-directory" onclick="switchDevTab('directory')">Active Directories</button>
+    </div>
+
+    <div class="panel-body">
+      <div id="dev-tab-utils" class="dev-tab-content-pane">
+        <div class="panel-section">
+          <div class="panel-section-title">System Insights</div>
+          <div class="dev-grid">
+            <div class="dev-stat-card">
+              <div style="font-size:0.75rem; color:var(--text-muted);">Active Cache Convos</div>
+              <div class="dev-stat-val" id="dev-stat-convos">0</div>
+            </div>
+            <div class="dev-stat-card">
+              <div style="font-size:0.75rem; color:var(--text-muted);">Friends Nodes Loaded</div>
+              <div class="dev-stat-val" id="dev-stat-friends">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">Administrative Chat Overlay</div>
+          <div class="input-row">
+            <input type="text" id="dev-join-convo-id" placeholder="Paste Convo / DM Document ID..." />
+            <button class="btn-sm btn-blue" onclick="executeDevJoinConvo()">Force Join Chat</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">Global Network System Broadcast</div>
+          <div class="field" style="margin-bottom:10px;">
+            <input type="text" id="dev-global-broadcast-input" placeholder="Type structural update text for EVERY conversation..." />
+          </div>
+          <button class="btn-sm btn-blue" style="width:100%; margin-bottom:12px;" onclick="executeGlobalNetworkBroadcast()">Transmit Message to All Active Channels</button>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">Global Administrative Tools</div>
+          <div class="field" style="margin-bottom:10px;">
+            <input type="text" id="dev-broadcast-input" placeholder="Type a message to inject into chat content field..." />
+          </div>
+          <button class="btn-sm btn-blue" style="width:100%; margin-bottom:12px;" onclick="executeDevBroadcast()">Inject Test System Broadcast Message</button>
+          <button class="btn-sm btn-danger" style="width:100%;" onclick="purgeCurrentConvoMessages()">Wipe Current Conversation History Logs</button>
+        </div>
+      </div>
+
+      <div id="dev-tab-directory" class="dev-tab-content-pane" style="display: none;">
+        <div class="panel-section">
+          <div class="panel-section-title">Search Network Channels</div>
+          <div class="field" style="margin-bottom:12px;">
+            <input type="text" id="dev-directory-search" oninput="filterDevDirectory()" placeholder="Filter active conversations by identifier name..." style="width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); outline: none;" />
+          </div>
+
+          <div class="panel-section-title">Active Database Records</div>
+          <div id="dev-directory-list" class="dev-chats-directory">
+            </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="panel" id="friends-panel" onclick="panelBg(event,'friends-panel')">
   <div class="panel-card">
     <div class="panel-header">
@@ -680,11 +723,9 @@
       <button class="panel-tab" onclick="switchFriendTab('add')">Add Friend</button>
     </div>
     <div class="panel-body">
-      <!-- All friends -->
       <div class="tab-content active" id="tab-all">
         <div id="friends-list"><div class="empty-state" style="height:180px;"><div class="spinner"></div></div></div>
       </div>
-      <!-- Requests -->
       <div class="tab-content" id="tab-requests">
         <div class="panel-section">
           <div class="panel-section-title">Incoming</div>
@@ -695,7 +736,6 @@
           <div id="outgoing-requests"></div>
         </div>
       </div>
-      <!-- Add friend -->
       <div class="tab-content" id="tab-add">
         <div class="panel-section">
           <div class="panel-section-title">Add by username</div>
@@ -710,7 +750,6 @@
   </div>
 </div>
 
-<!-- New Chat / Group Panel -->
 <div class="panel" id="new-panel" onclick="panelBg(event,'new-panel')">
   <div class="panel-card">
     <div class="panel-header">
@@ -745,7 +784,6 @@
   </div>
 </div>
 
-<!-- Profile Panel -->
 <div class="panel" id="profile-panel" onclick="panelBg(event,'profile-panel')">
   <div class="panel-card" style="max-width:360px;">
     <div class="panel-header">
@@ -775,7 +813,6 @@
   </div>
 </div>
 
-<!-- Nickname Modal -->
 <div class="panel" id="nickname-panel" onclick="panelBg(event,'nickname-panel')">
   <div class="panel-card" style="max-width:360px;">
     <div class="panel-header">
@@ -796,7 +833,10 @@
   </div>
 </div>
 
-<!-- Toast container -->
+<div class="panel" id="lightbox-panel" onclick="closePanel('lightbox-panel')">
+  <img id="lightbox-img" style="max-width:90vw; max-height:90vh; border-radius:var(--radius); border:2px solid var(--border);" src="" alt="Expanded thumbnail" />
+</div>
+
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
@@ -812,10 +852,12 @@ const COL_FRIENDS       = 'chat_friends';
 const COL_CONVERSATIONS = 'chat_convos';
 const COL_MESSAGES      = 'chat_messages';
 
+const DEV_USERNAMES     = ['distractor51522', 'jcfranson56', 'jackthedev'];
+
 // ══════════════════════════════════════════════
 //  SDK INIT
 // ══════════════════════════════════════════════
-const { Client, Account, Databases, Query, ID, Permission, Role } = Appwrite;
+const { Client, Account, Databases, Query, ID } = Appwrite;
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
@@ -881,7 +923,7 @@ async function doRegister() {
   const btn = document.getElementById('reg-btn');
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
-    const user = await account.create(ID.unique(), email, pass, name);
+    await account.create(ID.unique(), email, pass, name);
     await account.createEmailPasswordSession(email, pass);
     await initApp(username);
   } catch(e) {
@@ -894,9 +936,10 @@ async function doLogout() {
   try { await account.deleteSession('current'); } catch(e) {}
   clearInterval(pollInterval);
   clearInterval(msgPollInterval);
-  currentUser = null; currentProfile = null; currentConvo = null;
+  currentUser = null; currentProfile = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('nav-dev').style.display = 'none';
   toast('Signed out.', 'info');
 }
 
@@ -915,6 +958,10 @@ async function initApp(newUsername = null) {
   document.getElementById('app').style.display = 'flex';
 
   await loadOrCreateProfile(newUsername);
+
+  if (currentProfile && DEV_USERNAMES.includes(currentProfile.username)) {
+    document.getElementById('nav-dev').style.display = 'flex';
+  }
 
   const initials = (currentProfile?.display_name || currentUser.name || '?')[0];
   document.getElementById('user-avatar').textContent        = initials;
@@ -946,7 +993,7 @@ async function loadOrCreateProfile(newUsername = null) {
     }
   } catch(e) {
     console.warn('Profile load error:', e.message);
-    toast('⚠️ Chat collections layout missing or unreachable.', 'error');
+    toast('⚠️ Chat collections not set up yet.', 'error');
   }
 }
 
@@ -967,6 +1014,7 @@ function startPolling() {
   pollInterval = setInterval(async () => {
     await refreshFriends();
     await refreshSidebar();
+    updateDevStats();
   }, 8000);
 }
 
@@ -976,6 +1024,13 @@ function startMsgPolling() {
   msgPollInterval = setInterval(async () => {
     await loadMessages(currentConvo.$id, false);
   }, 3000);
+}
+
+function updateDevStats() {
+  if (DEV_USERNAMES.includes(currentProfile?.username)) {
+    document.getElementById('dev-stat-convos').textContent = convos.length;
+    document.getElementById('dev-stat-friends').textContent = friends.length;
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -1120,16 +1175,16 @@ async function cancelFriendReq(docId) {
 async function refreshSidebar() {
   if (!currentUser) return;
   try {
-    // FIXED: Appwrite requires array values wrapped inside an array parameter for Query.contains() pattern mapping
     const res = await databases.listDocuments(DATABASE_ID, COL_CONVERSATIONS, [
-      Query.contains('member_ids', [currentUser.$id])
+      Query.contains('member_ids', currentUser.$id)
     ]);
     convos = res.documents;
     renderSidebar();
     populateDMFriendsList();
     populateGroupMemberSelect();
+    renderDevDirectory(); // Update dev panel layout concurrently
   } catch(e) {
-    console.error("Sidebar setup error:", e);
+    console.error("Sidebar Loading Failed:", e);
   }
 }
 
@@ -1142,40 +1197,34 @@ function renderSidebar() {
 
   let html = '';
 
-  if (activeNav === 'chat') {
+  if (dms.length > 0 || groups.length === 0) {
     html += `<div class="list-section-label">Direct Messages</div>`;
     const filteredDMs = dms.filter(c => convoDisplayName(c).toLowerCase().includes(filter) || !filter);
     if (filteredDMs.length === 0 && !filter) {
       html += '<div style="padding:8px 14px; font-size:0.8rem; color:var(--text-dim);">Add friends to start chatting.</div>';
     } else {
       filteredDMs.forEach(c => {
-        const name    = convoDisplayName(c);
+        const name = convoDisplayName(c);
         const initials = name[0];
-        const active   = currentConvo && currentConvo.$id === c.$id ? 'active' : '';
+        const active = currentConvo && currentConvo.$id === c.$id ? 'active' : '';
         html += `<div class="dm-item ${active}" onclick="openConvo('${c.$id}')">
           <div class="avatar" style="width:28px;height:28px;font-size:11px;">${initials}</div>
           <span class="dm-name">${name}</span>
-          <button class="sidebar-actions-btn" title="Delete Conversation" onclick="event.stopPropagation(); deleteConversation('${c.$id}', 'dm')">❌</button>
         </div>`;
       });
     }
   }
 
-  if (activeNav === 'groups' || groups.length > 0) {
+  if (groups.length > 0) {
     html += `<div class="list-section-label" style="margin-top:8px;">Group Chats</div>`;
     const filteredGroups = groups.filter(c => c.name.toLowerCase().includes(filter) || !filter);
-    if (filteredGroups.length === 0 && !filter) {
-      html += '<div style="padding:8px 14px; font-size:0.8rem; color:var(--text-dim);">No active group channels.</div>';
-    } else {
-      filteredGroups.forEach(c => {
-        const active = currentConvo && currentConvo.$id === c.$id ? 'active' : '';
-        html += `<div class="channel-item ${active}" onclick="openConvo('${c.$id}')">
-          <span class="channel-hash">#</span>
-          <span class="channel-name">${c.name}</span>
-          <button class="sidebar-actions-btn" title="Leave Group Chat" onclick="event.stopPropagation(); deleteConversation('${c.$id}', 'group')">❌</button>
-        </div>`;
-      });
-    }
+    filteredGroups.forEach(c => {
+      const active = currentConvo && currentConvo.$id === c.$id ? 'active' : '';
+      html += `<div class="channel-item ${active}" onclick="openConvo('${c.$id}')">
+        <span class="channel-hash">#</span>
+        <span class="channel-name">${c.name}</span>
+      </div>`;
+    });
   }
 
   if (!html) html = `<div class="empty-state" style="height:140px;"><div class="empty-title">No conversations</div><div class="empty-sub">Add friends and start chatting!</div></div>`;
@@ -1184,8 +1233,8 @@ function renderSidebar() {
 
 function convoDisplayName(c) {
   if (c.type === 'group') return c.name;
-  const otherId   = (c.member_ids || []).find(id => id !== currentUser.$id);
-  const nick      = nicknames[otherId];
+  const otherId = (c.member_ids || []).find(id => id !== currentUser.$id);
+  const nick    = nicknames[otherId];
   const otherName = c.other_name || c.name || 'User';
   return nick || otherName;
 }
@@ -1238,11 +1287,14 @@ function renderMessages(scrollToBottom = false) {
     const isMe      = msg.sender_id === currentUser.$id;
     const sameAuthor = prevSender === msg.sender_id;
     const nick      = nicknames[msg.sender_id];
-    // NOTE: Built around fallback logic to look for your customized schema setup guide fields safely
-    const senderNameAttr = msg.sender_name || msg.sender || 'Unknown';
-    const name      = nick || senderNameAttr;
+    const name      = nick || msg.sender_name || 'Unknown';
     const time      = new Date(msg.$createdAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-    const initials  = (senderNameAttr || '?')[0];
+    const initials  = (msg.sender_name || '?')[0];
+
+    const isImage = msg.text.startsWith('data:image/') || msg.text.startsWith('http://') || msg.text.startsWith('https://') && (msg.text.match(/\.(jpeg|jpg|gif|png|webp)/i) != null);
+    const messageContent = isImage
+      ? `<img class="msg-img" src="${msg.text}" onclick="launchLightbox('${msg.text}')" alt="Shared File Thumbnail"/>`
+      : escHtml(msg.text);
 
     if (!sameAuthor) {
       html += `<div class="msg-group">
@@ -1250,18 +1302,14 @@ function renderMessages(scrollToBottom = false) {
         <div class="msg-content">
           <div class="msg-meta">
             <span class="msg-author">${name}</span>
-            ${nick ? `<span class="msg-nickname">(@${senderNameAttr})</span>` : ''}
+            ${nick ? `<span class="msg-nickname">(@${msg.sender_name})</span>` : ''}
             <span class="msg-time">${time}</span>
-            ${isMe ? `<button class="icon-btn" style="display:inline-flex; font-size:11px; margin-left:6px; padding:2px 4px; opacity:0.5;" title="Delete message" onclick="deleteMessage('${msg.$id}')">🗑️</button>` : ''}
           </div>
-          <div class="msg-text">${escHtml(msg.text)}</div>
+          <div class="msg-text">${messageContent}</div>
         </div>
       </div>`;
     } else {
-      html += `<div class="msg-continued" style="display:flex; justify-content:space-between; align-items:center;">
-        <div class="msg-text">${escHtml(msg.text)}</div>
-        ${isMe ? `<button class="icon-btn" style="font-size:11px; padding:2px 4px; opacity:0.2;" title="Delete message" onclick="deleteMessage('${msg.$id}')">🗑️</button>` : ''}
-      </div>`;
+      html += `<div class="msg-continued"><div class="msg-text">${messageContent}</div></div>`;
     }
     prevSender = msg.sender_id;
   });
@@ -1277,82 +1325,51 @@ async function sendMessage() {
   input.value = '';
   input.style.height = 'auto';
   try {
-    // Dynamic mapping checks to prevent document structure initialization errors across custom schemas
-    const payload = {
+    await databases.createDocument(DATABASE_ID, COL_MESSAGES, ID.unique(), {
       convo_id:    currentConvo.$id,
       sender_id:   currentUser.$id,
+      sender_name: currentProfile?.display_name || currentUser.name,
       text:        text
-    };
-    payload.sender_name = currentProfile?.display_name || currentUser.name;
-    payload.sender      = currentProfile?.display_name || currentUser.name;
-
-    await databases.createDocument(DATABASE_ID, COL_MESSAGES, ID.unique(), payload);
+    });
     await loadMessages(currentConvo.$id, true);
   } catch(e) {
     toast('Failed to send: ' + e.message, 'error');
   }
 }
 
-// ══════════════════════════════════════════════
-//  DELETE CONTEXT METHODS (MESSAGES & CONVOS)
-// ══════════════════════════════════════════════
-async function deleteMessage(messageId) {
-  if (!confirm("Delete this message permanently?")) return;
-  try {
-    await databases.deleteDocument(DATABASE_ID, COL_MESSAGES, messageId);
-    toast('Message deleted.', 'info');
-    messages = messages.filter(msg => msg.$id !== messageId);
-    renderMessages(false);
-  } catch(e) {
-    toast('Delete failed: ' + e.message, 'error');
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file || !currentConvo) return;
+
+  if (!file.type.startsWith('image/')) {
+    toast('Please upload an image file only.', 'error');
+    return;
   }
+
+  toast('Processing image asset conversion...', 'info');
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64String = reader.result;
+    try {
+      await databases.createDocument(DATABASE_ID, COL_MESSAGES, ID.unique(), {
+        convo_id:    currentConvo.$id,
+        sender_id:   currentUser.$id,
+        sender_name: currentProfile?.display_name || currentUser.name,
+        text:        base64String
+      });
+      await loadMessages(currentConvo.$id, true);
+      toast('Image sent successfully!', 'success');
+    } catch(e) {
+      toast('Failed to dispatch image file: ' + e.message, 'error');
+    }
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
 }
 
-async function deleteConversation(convoId, type) {
-  const promptText = type === 'group'
-    ? "Are you sure you want to leave this group chat?"
-    : "Are you sure you want to delete this conversation link?";
-  if (!confirm(promptText)) return;
-
-  try {
-    const targetConvo = convos.find(c => c.$id === convoId);
-    if (!targetConvo) return;
-
-    if (type === 'group') {
-      // Remove yourself from the member stack array
-      const nextMembers = targetConvo.member_ids.filter(id => id !== currentUser.$id);
-      if (nextMembers.length === 0) {
-        await databases.deleteDocument(DATABASE_ID, COL_CONVERSATIONS, convoId);
-      } else {
-        await databases.updateDocument(DATABASE_ID, COL_CONVERSATIONS, convoId, {
-          member_ids: nextMembers
-        });
-      }
-    } else {
-      // For personal DMs, remove the document connection reference setup entirely
-      await databases.deleteDocument(DATABASE_ID, COL_CONVERSATIONS, convoId);
-    }
-
-    toast(type === 'group' ? 'Left group chat.' : 'Conversation removed.', 'info');
-
-    if (currentConvo && currentConvo.$id === convoId) {
-      clearInterval(msgPollInterval);
-      currentConvo = null;
-      document.getElementById('chat-name').textContent = 'Select a conversation';
-      document.getElementById('chat-sub').textContent  = 'Pick a DM or group to start chatting';
-      document.getElementById('chat-input-wrap').style.display = 'none';
-      document.getElementById('chat-nick-btn').style.display = 'none';
-      document.getElementById('chat-messages').innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">💬</div>
-          <div class="empty-title">Welcome to MyWeb Chat</div>
-          <div class="empty-sub">Select a conversation from the sidebar or add a friend to get started.</div>
-        </div>`;
-    }
-    await refreshSidebar();
-  } catch(e) {
-    toast('Action failed: ' + e.message, 'error');
-  }
+function launchLightbox(srcStr) {
+  document.getElementById('lightbox-img').src = srcStr;
+  openPanel('lightbox-panel');
 }
 
 function handleMsgKey(e) {
@@ -1373,7 +1390,6 @@ function autoResize(el) {
 async function openDMWith(userId, userName) {
   closePanel('friends-panel');
   closePanel('new-panel');
-
   const existing = convos.find(c =>
     c.type === 'dm' &&
     c.member_ids.includes(currentUser.$id) &&
@@ -1403,7 +1419,7 @@ function populateDMFriendsList() {
   const accepted = friends.filter(f => f.status === 'accepted');
   const el = document.getElementById('dm-friends-list');
   if (accepted.length === 0) {
-    el.innerHTML = '<p style="font-size:0.8rem;color:var(--text-dim);">Add friends first to send DMs.</p>';
+    el.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);">Add friends first to send DMs.</p>';
     return;
   }
   el.innerHTML = accepted.map(f => {
@@ -1450,6 +1466,170 @@ async function createGroup() {
     await openConvo(doc.$id);
   } catch(e) {
     toast('Error: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  DEVELOPER UTILITIES
+// ══════════════════════════════════════════════
+function switchDevTab(tab) {
+  document.querySelectorAll('#dev-panel .tab-content-pane').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('#dev-panel .panel-tab').forEach(el => el.classList.remove('active'));
+
+  if (tab === 'utils') {
+    document.getElementById('dev-tab-utils').style.display = 'block';
+    document.getElementById('dev-tab-btn-utils').classList.add('active');
+  } else if (tab === 'directory') {
+    document.getElementById('dev-tab-directory').style.display = 'block';
+    document.getElementById('dev-tab-btn-directory').classList.add('active');
+    renderDevDirectory();
+  }
+}
+
+function renderDevDirectory() {
+  const directoryContainer = document.getElementById('dev-directory-list');
+  if (!directoryContainer) return;
+
+  if (convos.length === 0) {
+    directoryContainer.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);padding:8px 4px;">No active conversations cached on system profile.</p>';
+    return;
+  }
+
+  directoryContainer.innerHTML = convos.map(c => {
+    const dispName = convoDisplayName(c);
+    const typeLabel = c.type === 'group' ? 'GC' : 'DM';
+    return `
+      <div class="dev-chat-row" data-name="${dispName.toLowerCase()}" onclick="selectDevConvoNode('${c.$id}')">
+        <span style="font-size: 0.875rem; font-weight: 500;">${dispName}</span>
+        <span class="dev-badge-type ${c.type}">${typeLabel}</span>
+      </div>
+    `;
+  }).join('');
+  filterDevDirectory();
+}
+
+function filterDevDirectory() {
+  const term = document.getElementById('dev-directory-search').value.toLowerCase().trim();
+  const rows = document.getElementById('dev-directory-list').getElementsByClassName('dev-chat-row');
+
+  for (let i = 0; i < rows.length; i++) {
+    const rowName = rows[i].getAttribute('data-name');
+    if (rowName.includes(term) || !term) {
+      rows[i].style.display = 'flex';
+    } else {
+      rows[i].style.display = 'none';
+    }
+  }
+}
+
+async function selectDevConvoNode(convoId) {
+  closePanel('dev-panel');
+  await openConvo(convoId);
+}
+
+async function executeDevJoinConvo() {
+  const targetConvoId = document.getElementById('dev-join-convo-id').value.trim();
+  if (!targetConvoId) {
+    return toast('Provide a valid conversation Document ID node reference.', 'error');
+  }
+
+  try {
+    const convoDoc = await databases.getDocument(DATABASE_ID, COL_CONVERSATIONS, targetConvoId);
+    let members = convoDoc.member_ids || [];
+
+    if (members.includes(currentUser.$id)) {
+      toast('You are already established in this conversation architecture.', 'info');
+      closePanel('dev-panel');
+      await openConvo(targetConvoId);
+      return;
+    }
+
+    members.push(currentUser.$id);
+
+    await databases.updateDocument(DATABASE_ID, COL_CONVERSATIONS, targetConvoId, {
+      member_ids: members
+    });
+
+    document.getElementById('dev-join-convo-id').value = '';
+    toast('Conversation node profile structural join success!', 'success');
+    closePanel('dev-panel');
+
+    await refreshSidebar();
+    await openConvo(targetConvoId);
+  } catch (e) {
+    toast('Join runtime mapping anomaly: ' + e.message, 'error');
+  }
+}
+
+async function executeGlobalNetworkBroadcast() {
+  const str = document.getElementById('dev-global-broadcast-input').value.trim();
+  if (!str) {
+    return toast('Broadcast values can not register blank text structures.', 'error');
+  }
+
+  toast('Gathering runtime network communication metrics...', 'info');
+  try {
+    const allConvosRes = await databases.listDocuments(DATABASE_ID, COL_CONVERSATIONS, [Query.limit(100)]);
+    const targetedChannels = allConvosRes.documents;
+
+    if (targetedChannels.length === 0) {
+      return toast('No application chat pipelines found to transmit parameters.', 'error');
+    }
+
+    for (let currentTarget of targetedChannels) {
+      await databases.createDocument(DATABASE_ID, COL_MESSAGES, ID.unique(), {
+        convo_id:    currentTarget.$id,
+        sender_id:   'NETWORK_BROADCAST',
+        sender_name: '📣 SYSTEM ANNOUNCEMENT',
+        text:        `[NETWORK ALERT]: ${str}`
+      });
+    }
+
+    document.getElementById('dev-global-broadcast-input').value = '';
+    toast(`Successfully transmitted message sequence to ${targetedChannels.length} active chats!`, 'success');
+
+    if (currentConvo) {
+      await loadMessages(currentConvo.$id, true);
+    }
+  } catch (e) {
+    toast('Network engine sync error occurred: ' + e.message, 'error');
+  }
+}
+
+async function executeDevBroadcast() {
+  const str = document.getElementById('dev-broadcast-input').value.trim();
+  if (!str || !currentConvo) {
+    toast('Please select an active conversation and supply announcement text.', 'error');
+    return;
+  }
+  try {
+    await databases.createDocument(DATABASE_ID, COL_MESSAGES, ID.unique(), {
+      convo_id: currentConvo.$id,
+      sender_id: 'SYSTEM_BROADCAST',
+      sender_name: '🛡️ SERVER BROADCAST',
+      text: `[SYSTEM NOTICE]: ${str}`
+    });
+    document.getElementById('dev-broadcast-input').value = '';
+    await loadMessages(currentConvo.$id, true);
+    toast('Global broadcast simulation complete.', 'success');
+  } catch(e) {
+    toast('Injection payload failure: ' + e.message, 'error');
+  }
+}
+
+async function purgeCurrentConvoMessages() {
+  if (!currentConvo) return toast('No conversation targeted.', 'error');
+  if (!confirm('Are you absolute in performing a data scrub action on this conversation? This is irreversible.')) return;
+
+  toast('Initiating wipe cycle loop...', 'info');
+  try {
+    for (let msg of messages) {
+      await databases.deleteDocument(DATABASE_ID, COL_MESSAGES, msg.$id);
+    }
+    toast('Purge completion cycle finalized.', 'success');
+    await loadMessages(currentConvo.$id, true);
+  } catch(e) {
+    toast('Scrub sequence error occurred: ' + e.message, 'error');
   }
 }
 
@@ -1526,14 +1706,14 @@ function updateCSSForTheme(theme) {
     root.style.setProperty('--text-muted','#52525b');
     root.style.setProperty('--text-dim', '#a1a1aa');
   } else {
-    root.style.setProperty('--bg',       '#0a0a0a');
-    root.style.setProperty('--surface',  '#111113');
-    root.style.setProperty('--surface2', '#16161a');
-    root.style.setProperty('--border',   '#27272a');
-    root.style.setProperty('--border-light', '#3f3f46');
+    root.style.setProperty('--bg',       '#000000');
+    root.style.setProperty('--surface',  '#0a0a0c');
+    root.style.setProperty('--surface2', '#121214');
+    root.style.setProperty('--border',   '#222225');
+    root.style.setProperty('--border-light', '#3a3a3f');
     root.style.setProperty('--text',     '#ffffff');
     root.style.setProperty('--text-muted','#a1a1aa');
-    root.style.setProperty('--text-dim', '#71717a');
+    root.style.setProperty('--text-dim', '#61616a');
   }
 }
 
@@ -1544,14 +1724,14 @@ function setNav(nav) {
   activeNav = nav;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('nav-' + nav)?.classList.add('active');
-  document.getElementById('sidebar-title').textContent = nav === 'groups' ? 'Group Chats' : 'Direct Messages';
-  renderSidebar();
+  document.getElementById('sidebar-title').textContent = nav === 'groups' ? 'Group Chats' : 'Conversations';
 }
 
 function openPanel(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'friends-panel') { refreshFriends(); populateDMFriendsList(); }
   if (id === 'new-panel')     { populateDMFriendsList(); populateGroupMemberSelect(); }
+  if (id === 'dev-panel')     { updateDevStats(); switchDevTab('utils'); }
 }
 
 function closePanel(id) { document.getElementById(id).classList.remove('open'); }
@@ -1560,7 +1740,6 @@ function panelBg(e, id) {
   if (e.target === document.getElementById(id)) closePanel(id);
 }
 
-// Tab navigation within menus
 function switchFriendTab(tab) {
   document.querySelectorAll('#friends-panel .tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('#friends-panel .panel-tab').forEach(el => el.classList.remove('active'));
@@ -1605,6 +1784,19 @@ function escHtml(str) {
   await initApp();
 })();
 </script>
+
+<div id="setup-guide" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 28px; z-index:500; max-width:480px; font-size:0.85rem; box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+  <div style="font-weight:700; margin-bottom:10px;">📋 Required Appwrite Collections</div>
+  <p style="color:var(--text-muted); margin-bottom:12px;">Create these in your <strong>myweb_db</strong> database:</p>
+  <div style="display:flex; flex-direction:column; gap:8px; font-family:monospace; font-size:0.8rem; color:var(--text-muted);">
+    <div><strong style="color:var(--text);">chat_users</strong> — user_id(str), username(str), display_name(str)</div>
+    <div><strong style="color:var(--text);">chat_friends</strong> — user_a(str), user_b(str), name_a(str), name_b(str), username_a(str), username_b(str), status(str)</div>
+    <div><strong style="color:var(--text);">chat_convos</strong> — type(str), name(str), other_name(str), member_ids(str[]), created_by(str)</div>
+    <div><strong style="color:var(--text);">chat_messages</strong> — convo_id(str), sender_id(str), sender_name(str), text(str)</div>
+  </div>
+  <p style="color:var(--text-dim); margin-top:10px;">Set each collection's permissions to <strong>Any (read + write)</strong>.</p>
+  <button onclick="document.getElementById('setup-guide').style.display='none'" style="margin-top:12px; padding:7px 16px; background:var(--text); color:var(--bg); border:none; border-radius:6px; cursor:pointer; font-weight:600; font-family:Inter,sans-serif;">Got it</button>
+</div>
 
 </body>
 </html>
